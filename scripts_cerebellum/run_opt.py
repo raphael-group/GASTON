@@ -87,12 +87,12 @@ def run(args):
     # STEP 3: RUN MODEL
     ###########################
 
-    SAVE_PATH=f'/n/fs/ragr-research/projects/network-mutations/manifold-alignment/slideseq_cerebellum/intermediate_NN_v2/'
+    SAVE_PATH=f'/n/fs/ragr-research/users/bjarnold/spatial_transcriptomics/test_dir/slideseq_cerebellum/intermediate_NN_v2/'
     SAVE_PATH += f'nhS_{nhS}_optimizer_{optimizer}_partition_{partition}_trial_{trial}/'
 
 
     # first load model
-    sys.path.append('/n/fs/ragr-research/projects/network-mutations/manifold-alignment/SpatialNN_code')
+    sys.path.append('/n/fs/ragr-research/users/bjarnold/spatial_transcriptomics/SpatialNN')
     from SpatialNN import SpatialNN, train
 
     mod, loss_list = train(S_torch, A_torch,

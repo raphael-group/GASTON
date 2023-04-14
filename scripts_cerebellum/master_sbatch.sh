@@ -5,8 +5,8 @@ partition_list="left middle right all"
 
 num_cores=28
 
-scripts=/n/fs/ragr-research/projects/network-mutations/manifold-alignment/slideseq_cerebellum/scripts_NN
-intermediate=/n/fs/ragr-research/projects/network-mutations/manifold-alignment/slideseq_cerebellum/intermediate_NN_v2
+scripts=/n/fs/ragr-research/users/bjarnold/spatial_transcriptomics/SpatialNN/scripts_cerebellum
+intermediate=/n/fs/ragr-research/users/bjarnold/spatial_transcriptomics/test_dir/slideseq_cerebellum/intermediate_NN_v2
 
 mkdir -p $intermediate
 

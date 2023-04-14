@@ -5,7 +5,7 @@
 #SBATCH --mem=100GB            ## Memory
 #SBATCH -A raphael            ## partition
 
-scripts_dir=/n/fs/ragr-research/projects/network-mutations/manifold-alignment/olfactory_glmpca/scripts_NN
+scripts_dir=/n/fs/ragr-research/users/bjarnold/spatial_transcriptomics/SpatialNN/scripts_olfactory
 source /n/fs/ragr-data/users/uchitra/miniconda3/bin/activate base
 conda activate belayer2
 

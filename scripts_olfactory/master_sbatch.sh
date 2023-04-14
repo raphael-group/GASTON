@@ -5,8 +5,8 @@ partition_list="lower upper"
 
 num_cores=28
 
-scripts=/n/fs/ragr-research/projects/network-mutations/manifold-alignment/olfactory_glmpca/scripts_NN
-intermediate=/n/fs/ragr-research/projects/network-mutations/manifold-alignment/olfactory_glmpca/intermediate_NN_v2
+scripts=/n/fs/ragr-research/users/bjarnold/spatial_transcriptomics/SpatialNN/scripts_olfactory
+intermediate=/n/fs/ragr-research/users/bjarnold/spatial_transcriptomics/test_dir/olfactory_glmpca/intermediate_NN_v2
 
 mkdir -p $intermediate
 
