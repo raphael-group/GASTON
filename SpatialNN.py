@@ -52,8 +52,9 @@ class SpatialNN(nn.Module):
         S_layer_list=[2] + S_hidden_list + [1]
         S_layers=[]
         for l in range(len(S_layer_list)-1):
+            # add linear layer
             S_layers.append(nn.Linear(S_layer_list[l], S_layer_list[l+1]))
-
+            # add activation function except for last layer
             if l != len(S_layer_list)-2:
                 S_layers.append(activation_fn)
                 
@@ -63,8 +64,9 @@ class SpatialNN(nn.Module):
         A_layer_list=[1] + A_hidden_list + [G]
         A_layers=[]
         for l in range(len(A_layer_list)-1):
+            # add linear layer
             A_layers.append(nn.Linear(A_layer_list[l], A_layer_list[l+1]))
-
+            # add activation function except for last layer
             if l != len(A_layer_list)-2:
                 A_layers.append(activation_fn)
             

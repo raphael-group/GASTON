@@ -15,19 +15,19 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import adjusted_rand_score
 from sklearn import preprocessing
 
-import seaborn as sns
+#import seaborn as sns
 
-import anndata
-import scanpy
+#import anndata
+#import scanpy
 
 import pandas as pd
-import copy
+#import copy
 
 import argparse
 import csv
 import os
 import sys
-
+import random
 
 ########################################################################
 # MAIN
@@ -41,6 +41,17 @@ def get_parser():
     parser.add_argument('-t', '--trial', type=str, required=True)
     return parser
 
+def seed_torch(seed):
+    torch.manual_seed(seed)
+    random.seed(seed)
+    os.environ['PYTHONHASHSEED'] = str(seed)
+    torch.cuda.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed) # if you are using multi-GPU.
+    np.random.seed(seed) # Numpy module.
+    torch.manual_seed(seed)
+    torch.backends.cudnn.benchmark = False
+    torch.backends.cudnn.deterministic = True
+
 # Run script.
 def run(args):
     nhS=int(args.hiddenS)
@@ -48,6 +59,7 @@ def run(args):
     partition=str(args.partition)
     trial=int(args.trial)
 
+    seed_torch(trial)
     ###########################
     # STEP 1: LOAD DATA
     ###########################
@@ -87,16 +99,16 @@ def run(args):
     # STEP 3: RUN MODEL
     ###########################
 
-    SAVE_PATH=f'/n/fs/ragr-research/users/bjarnold/spatial_transcriptomics/test_dir/slideseq_cerebellum/intermediate_NN_v2/'
+    SAVE_PATH=f'/n/fs/ragr-research/users/bjarnold/spatial_transcriptomics/test_dir/slideseq_cerebellum/intermediate_NN_v2_seedrun2/'
     SAVE_PATH += f'nhS_{nhS}_optimizer_{optimizer}_partition_{partition}_trial_{trial}/'
-
+    os.makedirs(SAVE_PATH, exist_ok=True)
 
     # first load model
     sys.path.append('/n/fs/ragr-research/users/bjarnold/spatial_transcriptomics/SpatialNN')
     from SpatialNN import SpatialNN, train
 
     mod, loss_list = train(S_torch, A_torch,
-            S_hidden_list=[nhS], A_hidden_list=[10], epochs=50000,
+            S_hidden_list=[nhS], A_hidden_list=[10], epochs=21000,
             checkpoint=500, SAVE_PATH=SAVE_PATH, optim=optimizer, seed=trial)
 
     # sm_init=SpatialNN(A_torch.shape[1], [nhS], [10])
