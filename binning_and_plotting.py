@@ -2,6 +2,7 @@ from scipy.stats import mode
 import numpy as np
 import matplotlib.pyplot as plt
 
+# counts mat has to be of shape G x N
 def bin_data(counts_mat, belayer_labels, belayer_depth, 
               cell_type_df, gene_labels, num_bins=70, umi_threshold=500):
     
@@ -63,7 +64,8 @@ def bin_data(counts_mat, belayer_labels, belayer_depth,
 
     to_return={}
     
-    # to_return['counts_mat']=counts_mat
+    to_return['L']=len(np.unique(belayer_labels))
+    to_return['umi_threshold']=umi_threshold
     to_return['belayer_labels']=belayer_labels
     to_return['pseudo_counts_mat_idx']=cmat
     to_return['cell_type_mat']=cell_type_mat
@@ -95,6 +97,7 @@ def plot_gene_pwlinear(gene_name, pw_fit_dict, belayer_labels, belayer_depth, bi
     if gene_name in gene_labels_idx:
         gene=np.where(gene_labels_idx==gene_name)[0]
     else:
+        umi_threshold=binning_output['umi_threshold']
         raise ValueError(f'gene does not have UMI count above threshold {umi_threshold}')
     
     unique_binned_depths=binning_output['unique_binned_depths']
@@ -103,15 +106,13 @@ def plot_gene_pwlinear(gene_name, pw_fit_dict, belayer_labels, belayer_depth, bi
     if cell_type is None:
         binned_count=binning_output['binned_count']
         binned_exposure=binning_output['binned_exposure']
-        slope_mat, intercept_mat, _, _ = pw_fit_dict['all_cell_types']
+        
     else:
         binned_count=binning_output['binned_count_per_ct'][cell_type]
         binned_exposure=binning_output['binned_exposure_per_ct'][cell_type]
         binned_cell_type_mat=binning_output['binned_cell_type_mat']
         
         ct_ind=np.where(binning_output['cell_type_names']==cell_type)[0][0]
-        
-        slope_mat, intercept_mat, _, _ = pw_fit_dict[cell_type]
     
     segs=binning_output['segs']
     L=len(segs)
@@ -128,11 +129,16 @@ def plot_gene_pwlinear(gene_name, pw_fit_dict, belayer_labels, belayer_depth, bi
         
         if colors is not None:
             plt.scatter(unique_binned_depths[pts_seg],
-                       np.log( (binned_count[gene,pts_seg]) / binned_exposure[pts_seg] ), c=colors[seg])
+                       np.log( (binned_count[gene,pts_seg]) / binned_exposure[pts_seg] ), color=colors[seg])
         else:
             plt.scatter(unique_binned_depths[pts_seg], 
                         np.log( (binned_count[gene,pts_seg]) / binned_exposure[pts_seg] ))
         if linear_fit:
+            if cell_type is None:
+                slope_mat, intercept_mat, _, _ = pw_fit_dict['all_cell_types']
+            else:
+                slope_mat, intercept_mat, _, _ = pw_fit_dict[cell_type]
+            
             slope=slope_mat[gene,seg]
             intercept=intercept_mat[gene,seg]
             # print(slope,intercept)

@@ -174,7 +174,7 @@ def train(S, A,
             opt.step()
             
     return spatial_nn_model, loss_list
-
+    
 def get_loss(mod, St, At):
     N,G=At.shape
     errr=(mod(St) - At)**2

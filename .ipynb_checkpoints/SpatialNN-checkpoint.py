@@ -175,3 +175,7 @@ def train(S, A,
             
     return spatial_nn_model, loss_list
     
+def get_loss(mod, St, At):
+    N,G=At.shape
+    errr=(mod(St) - At)**2
+    return torch.mean(errr)
