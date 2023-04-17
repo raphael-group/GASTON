@@ -26,7 +26,7 @@ def poisson_regression(y, xcoords=None, exposure=None, alpha=0):
 
     return [clf.coef_[0], clf.intercept_ ]
 
-def segmented_poisson_regression(count, totalumi, dp_labels, depth, 
+def segmented_poisson_regression(count, totalumi, dp_labels, depth, num_layers,
                                  opt_function=poisson_regression):
     """ Fit Poisson regression per gene per layer.
     :param count: UMI count matrix of SRT gene expression, G genes by n spots
@@ -43,7 +43,8 @@ def segmented_poisson_regression(count, totalumi, dp_labels, depth,
 
     G, N = count.shape
     unique_layers = np.sort(np.unique(dp_labels))
-    L = len(unique_layers)
+    # L = len(unique_layers)
+    L=num_layers
 
     slope1_matrix=np.zeros((G,L))
     intercept1_matrix=np.zeros((G,L))
@@ -55,10 +56,19 @@ def segmented_poisson_regression(count, totalumi, dp_labels, depth,
     pval_matrix=np.zeros((G,L))
 
     for g in trange(G):
-        for t in np.arange(L):
+        for t in unique_layers:
             pts_t=np.where(dp_labels==t)[0]
+            t=int(t)
             
-            s0, i0, s1, i1, pval = llr_poisson(count[g,pts_t], xcoords=depth[pts_t], exposure=totalumi[pts_t])
+            # need to be enough points in layer
+            if len(pts_t) > 10:
+                s0, i0, s1, i1, pval = llr_poisson(count[g,pts_t], xcoords=depth[pts_t], exposure=totalumi[pts_t])
+            else:
+                s0=np.Inf
+                i0=np.Inf
+                s1=np.Inf
+                i1=np.Inf
+                pval=np.Inf
         
             slope0_matrix[g,t]=s0
             intercept0_matrix[g,t]=i0
@@ -70,20 +80,24 @@ def segmented_poisson_regression(count, totalumi, dp_labels, depth,
             
     return slope0_matrix,intercept0_matrix,slope1_matrix,intercept1_matrix, pval_matrix
 
-def get_discont_mat(s_mat, i_mat, belayer_labels, belayer_depth):
-    G,L=s_mat.shape
-    # L=len(np.unique(binned_labels))
+def get_discont_mat(s_mat, i_mat, belayer_labels, belayer_depth, num_layers):
+    G,_=s_mat.shape
+    L=num_layers
     discont_mat=np.zeros((G,L-1))
     
     for l in range(L-1):
-        pts_l=np.where(belayer_labels==l)
-        x_left=np.max(belayer_depth[pts_l])
-        y_left=s_mat[:,l]*x_left + i_mat[:,l]
+        pts_l=np.where(belayer_labels==l)[0]
+        pts_l1=np.where(belayer_labels==l+1)[0]
         
-        pts_l1=np.where(belayer_labels==l+1)
-        x_right=np.min(belayer_depth[pts_l1])
-        y_right=s_mat[:,l+1]*x_right + i_mat[:,l+1]
-        discont_mat[:,l]=y_right-y_left
+        if len(pts_l) > 0 and len(pts_l1) > 0:
+            x_left=np.max(belayer_depth[pts_l])
+            y_left=s_mat[:,l]*x_left + i_mat[:,l]
+
+            x_right=np.min(belayer_depth[pts_l1])
+            y_right=s_mat[:,l+1]*x_right + i_mat[:,l+1]
+            discont_mat[:,l]=y_right-y_left
+        else:
+            discont_mat[:,l]=0
     return discont_mat
 
 ######################
@@ -118,6 +132,8 @@ def pw_linear_fit(counts_mat, belayer_labels, belayer_depth, cell_type_df, ct_li
     
     G,N=cmat.shape
     
+    L=len(np.unique(belayer_labels))
+    
     pw_fit_dict={}
     
     # ONE: compute for all cell types
@@ -125,11 +141,11 @@ def pw_linear_fit(counts_mat, belayer_labels, belayer_depth, cell_type_df, ct_li
     s0_mat,i0_mat,s1_mat,i1_mat,pv_mat=segmented_poisson_regression(cmat,
                                                    exposures, 
                                                    belayer_labels, 
-                                                   belayer_depth)
+                                                   belayer_depth,
+                                                   L)
     
-    
-    slope_mat=np.zeros((len(idx_kept), 4))
-    intercept_mat=np.zeros((len(idx_kept), 4))
+    slope_mat=np.zeros((len(idx_kept), L))
+    intercept_mat=np.zeros((len(idx_kept), L))
 
     t=0.10
     inds1= (pv_mat < t)
@@ -141,7 +157,7 @@ def pw_linear_fit(counts_mat, belayer_labels, belayer_depth, cell_type_df, ct_li
     slope_mat[inds0] = s0_mat[inds0]
     intercept_mat[inds0] = i0_mat[inds0]
 
-    discont_mat=get_discont_mat(slope_mat, intercept_mat, belayer_labels, belayer_depth)
+    discont_mat=get_discont_mat(slope_mat, intercept_mat, belayer_labels, belayer_depth, L)
           
     pw_fit_dict['all_cell_types']=(slope_mat,intercept_mat,discont_mat, pv_mat)
     
@@ -163,10 +179,11 @@ def pw_linear_fit(counts_mat, belayer_labels, belayer_depth, cell_type_df, ct_li
         s0_ct,i0_ct,s1_ct,i1_ct,pv_mat_ct=segmented_poisson_regression(cmat_ct,
                                                        exposures_ct, 
                                                        belayer_labels_ct, 
-                                                       belayer_depth_ct)
+                                                       belayer_depth_ct,
+                                                       L)
 
-        slope_mat_ct=np.zeros((len(idx_kept), 4))
-        intercept_mat_ct=np.zeros((len(idx_kept), 4))
+        slope_mat_ct=np.zeros((len(idx_kept), L))
+        intercept_mat_ct=np.zeros((len(idx_kept), L))
 
         t=0.10
         inds1_ct= (pv_mat_ct < t)
@@ -178,7 +195,7 @@ def pw_linear_fit(counts_mat, belayer_labels, belayer_depth, cell_type_df, ct_li
         slope_mat_ct[inds0_ct] = s0_ct[inds0_ct]
         intercept_mat_ct[inds0_ct] = i0_ct[inds0_ct]
         
-        discont_mat=get_discont_mat(slope_mat_ct, intercept_mat_ct, belayer_labels_ct, belayer_depth_ct)
+        discont_mat=get_discont_mat(slope_mat_ct, intercept_mat_ct, belayer_labels_ct, belayer_depth_ct, L)
 
         pw_fit_dict[ct]=(slope_mat_ct, intercept_mat_ct, discont_mat, pv_mat_ct)
           

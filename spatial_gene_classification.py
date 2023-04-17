@@ -6,8 +6,10 @@ def get_discont_genes(pw_fit_dict, binning_output, q=0.95, cell_type=None):
         cell_type = 'all_cell_types'
     
     _,_,discont_mat,_=pw_fit_dict[cell_type]
+    # print(discont_mat)
     
     discont_q=np.tile( np.quantile(np.abs(discont_mat), q,0), (discont_mat.shape[0],1))
+    # print(np.abs(discont_mat),discont_q)
     discont_genes=list( np.where(np.sum(np.abs(discont_mat) > discont_q,1))[0] )
     
     gene_labels_idx=binning_output['gene_labels_idx']
@@ -26,6 +28,35 @@ def get_SV_genes(pw_fit_dict, binning_output, q=0.95, cell_type=None):
     gene_labels_idx=binning_output['gene_labels_idx']
     
     return gene_labels_idx[svgs]
+
+def get_layer_specific_genes(pw_fit_dict, l, binning_output, q=0.95, cell_type=None):
+    
+    L=binning_output['L']
+    gene_labels_idx=binning_output['gene_labels_idx']
+    
+    if cell_type is None:
+        cell_type = 'all_cell_types'
+    
+    slope_mat,_,discont_mat,_=pw_fit_dict[cell_type]
+    
+    slope_mat_l=slope_mat[:,l]
+    large_slope_genes=np.where(np.abs(slope_mat_l) > np.quantile(np.abs(slope_mat_l), q,0))[0]
+    
+    if l>0:
+        discont_left=discont_mat[:,l-1]
+        large_left_genes=np.where(np.abs(discont_left) > np.quantile(np.abs(discont_left), q,0))[0]
+    else:
+        large_left_genes=[]
+    
+    if l < L-1:
+        discont_right=discont_mat[:,l]
+        large_right_genes=np.where(np.abs(discont_right) > np.quantile(np.abs(discont_right), q,0))[0]
+    else:
+        large_right_genes=[]
+    
+    all_genes=[g for g in range(len(gene_labels_idx)) if g in large_slope_genes or g in large_left_genes or g in large_right_genes]
+    
+    return gene_labels_idx[all_genes]
 
 
 # EXAMPLE of layer_cts: {0: ['Oligodendrocytes'], 1: ['Granule'], 2: ['Purkinje', 'Bergmann'], 3: ['MLI1', 'MLI2']}
