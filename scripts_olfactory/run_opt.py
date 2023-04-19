@@ -17,8 +17,8 @@ from sklearn import preprocessing
 
 import seaborn as sns
 
-import anndata
-import scanpy
+#import anndata
+#import scanpy
 
 import pandas as pd
 import copy
@@ -117,7 +117,7 @@ def run(args):
 
     SAVE_PATH=f'/n/fs/ragr-research/users/bjarnold/spatial_transcriptomics/test_dir/olfactory_glmpca/intermediate_NN_v2/'
     SAVE_PATH += f'nhS_{nhS}_optimizer_{optimizer}_partition_{partition}_trial_{trial}/'
-
+    os.makedirs(SAVE_PATH, exist_ok=True)
 
     # first load model
     sys.path.append('/n/fs/ragr-research/users/bjarnold/spatial_transcriptomics/SpatialNN')

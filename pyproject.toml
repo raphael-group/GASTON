@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "SpatialNN"
+version = "0.0.1"
+authors = [
+  { name="Example Author", email="author@example.com" },
+]
+description = "A small example package"
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: BSD License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "torch",
+    "matplotlib",
+    "pandas",
+    "seaborn",
+    "scikit-learn",
+    "numpy"
+]
+
+[project.scripts]
+spatialnn = "spatialnn.__main__:main"
+
+[project.urls]
+"Homepage" = "https://github.com/raphael-group/SpatialNN"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["spatialnn*"]

@@ -108,8 +108,8 @@ def run(args):
     from SpatialNN import SpatialNN, train
 
     mod, loss_list = train(S_torch, A_torch,
-            S_hidden_list=[nhS], A_hidden_list=[10], epochs=21000,
-            checkpoint=500, SAVE_PATH=SAVE_PATH, optim=optimizer, seed=trial)
+            S_hidden_list=[nhS], A_hidden_list=[10], epochs=50000,
+            checkpoint=1000, SAVE_PATH=SAVE_PATH, optim=optimizer, seed=trial)
 
     # sm_init=SpatialNN(A_torch.shape[1], [nhS], [10])
 

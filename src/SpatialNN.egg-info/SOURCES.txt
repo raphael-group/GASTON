@@ -1,0 +1,13 @@
+LICENSE
+README.md
+pyproject.toml
+setup.py
+src/SpatialNN.egg-info/PKG-INFO
+src/SpatialNN.egg-info/SOURCES.txt
+src/SpatialNN.egg-info/dependency_links.txt
+src/SpatialNN.egg-info/entry_points.txt
+src/SpatialNN.egg-info/requires.txt
+src/SpatialNN.egg-info/top_level.txt
+src/spatialnn/__init__.py
+src/spatialnn/__main__.py
+src/spatialnn/parse_args.py
