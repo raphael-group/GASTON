@@ -11,11 +11,16 @@ def parse_args():
     description = "SpatialNN."
     parser = argparse.ArgumentParser(description=description)
 
+    parser.add_argument('-o', '--output_layer', type=str, required=True, help="A matrix of gene expression PC values (column) for each coordinate (row)")
+    parser.add_argument('-i', '--input_layer', type=str, required=True, help="The position of each spot in the slide (x,y)")
+    parser.add_argument('-d', '--output_dir', type=str, required=False, default="./", help="The directory to save the output files")
+    
+    parser.add_argument('-e', '--epochs', type=int, required=False, default=20000, help="number of epochs to train the neural network")
+    parser.add_argument('-n', '--num_layers', type=int, required=False, default=2, help="number of layers in tissue")
     parser.add_argument('-u', '--hidden_units_spatial', type=int, required=False, default=50, help="number of hidden units in the layer")
-    parser.add_argument('-o', '--optimizer', type=str, required=False, default="adam", help="the optimizer to use for fitting the neural network")
+    parser.add_argument('-z', '--optimizer', type=str, required=False, default="adam", help="the optimizer to use for fitting the neural network")
     parser.add_argument('-p', '--partition', type=str, required=False, help="the portion of the slide to anlayze")
     parser.add_argument('-s', '--seed', type=int, required=False, default=random.randrange(10000), help="Set random seed for reproducibility")
-
 
     """
     # some other kind of options copied-pasted from elsewhere we can use
@@ -35,6 +40,7 @@ def parse_args():
         "partition" : args.partition,
         "seed" : args.seed
     }"""
+
     return parser.parse_args()
 
 args = parse_args()
