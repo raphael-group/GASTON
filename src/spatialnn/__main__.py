@@ -49,8 +49,8 @@ def main():
 
   # train neural network
   mod, loss_list = train(S_torch, A_torch,
-                          S_hidden_list=[args.hidden_units_spatial], A_hidden_list=[10], 
-                          epochs=args.epochs, checkpoint=1000, 
+                          S_hidden_list=[args.hidden_units_spatial]*2, A_hidden_list=[10], 
+                          epochs=args.epochs, checkpoint=args.checkpoint, 
                           save_dir=args.output_dir, optim=args.optimizer, seed=args.seed) 
 
   A = A_torch.numpy()
@@ -60,7 +60,9 @@ def main():
 
   # save final model and losses per training checkpoint
   torch.save(mod, f'{args.output_dir}/final_model.pt')
-  np.savetxt(f'{args.output_dir}/loss_list.npy', loss_list)
+  np.savetxt(f'{args.output_dir}/loss_list.txt', loss_list)
+  with open(f'{args.output_dir}/min_loss.txt', 'w') as f:
+    f.write(str(min(loss_list)) + "\n")
   torch.save(S_torch, f'{args.output_dir}/Storch.pt')
   torch.save(A_torch, f'{args.output_dir}/Atorch.pt')
 
