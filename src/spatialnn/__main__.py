@@ -17,16 +17,7 @@ from spatialnn.parse_args import args
 from spatialnn.neural_net import train
 from spatialnn import dp_related
 
-def set_seeds(seed):
-    torch.manual_seed(seed)
-    random.seed(seed)
-    os.environ['PYTHONHASHSEED'] = str(seed)
-    torch.cuda.manual_seed(seed)
-    torch.cuda.manual_seed_all(seed) # if you are using multi-GPU.
-    np.random.seed(seed) # Numpy module.
-    torch.manual_seed(seed)
-    torch.backends.cudnn.benchmark = False
-    torch.backends.cudnn.deterministic = True
+
 
 def load_rescale_input_data(args):
   coords = np.loadtxt(args.input_layer, delimiter='\t')
@@ -45,7 +36,6 @@ def load_rescale_input_data(args):
 
 def main():
 
-  set_seeds(args.seed)
   os.makedirs(args.output_dir, exist_ok=True) 
 
   # Load input data and rescale, S_torch and A_torch are torch tensors representing the spatial coordinates and expression data, respectively

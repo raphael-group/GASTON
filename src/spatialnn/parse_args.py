@@ -22,6 +22,7 @@ def parse_args():
     parser.add_argument('-z', '--optimizer', type=str, required=False, default="adam", help="the optimizer to use for fitting the neural network")
     parser.add_argument('-p', '--partition', type=str, required=False, help="the portion of the slide to anlayze")
     parser.add_argument('-s', '--seed', type=int, required=False, default=random.randrange(10000), help="Set random seed for reproducibility")
+    parser.add_argument('-r', '--restarts', type=int, required=False, default=None, help="Number of restarts for the neural network")
 
     """
     # some other kind of options copied-pasted from elsewhere we can use
