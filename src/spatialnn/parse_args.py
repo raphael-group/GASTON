@@ -17,7 +17,7 @@ def parse_args():
     
     parser.add_argument('-e', '--epochs', type=int, required=False, default=20000, help="number of epochs to train the neural network")
     parser.add_argument('-c', '--checkpoint', type=int, required=False, default=500, help="save model every checkpoint epochs")
-    parser.add_argument('-n', '--num_layers', type=int, required=False, default=2, help="number of layers in tissue")
+    parser.add_argument('-n', '--max_num_layers', type=int, required=False, default=2, help="number of layers in tissue")
     parser.add_argument('-u', '--hidden_units_spatial', type=int, required=False, default=50, help="number of hidden units in the layer")
     parser.add_argument('-z', '--optimizer', type=str, required=False, default="adam", help="the optimizer to use for fitting the neural network")
     parser.add_argument('-p', '--partition', type=str, required=False, help="the portion of the slide to anlayze")

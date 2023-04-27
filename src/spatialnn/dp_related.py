@@ -346,7 +346,7 @@ def get_depth_labels(model, A, S, num_layers, num_buckets=150):
     
     return belayer_depth,belayer_labels
 
-def plot_clusters(belayer_labels, A, S, output_dir, figsize=(5,8), colors=None, color_palette=plt.cm.Dark2, s=20):
+def plot_clusters(belayer_labels, A, S, output_dir, max_layers, figsize=(5,8), colors=None, color_palette=plt.cm.Dark2, s=20):
     
     fig,ax=plt.subplots(figsize=figsize)
 
@@ -357,7 +357,7 @@ def plot_clusters(belayer_labels, A, S, output_dir, figsize=(5,8), colors=None, 
         pts_t=np.where(belayer_labels==t)[0]
         ax.scatter(S[pts_t,0], S[pts_t,1],s=s, color=colors[int(t)])
     plt.axis('off')
-    plt.savefig(f'{output_dir}/clusters.png')
+    plt.savefig(f'{output_dir}/max{max_layers}_clusters.png')
 
 def plot_vector_field(model, S, figsize=(5,8), colors=None, color_palette=plt.cm.Dark2, normalize_grads=True):
     x=torch.tensor(S,requires_grad=True)

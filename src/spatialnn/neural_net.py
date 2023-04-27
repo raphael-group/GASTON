@@ -138,14 +138,15 @@ def train(S, A,
         opt = torch.optim.SGD(spatial_nn_model.parameters(), lr=lr, momentum=momentum, weight_decay=weight_decay)
     elif optim=='adam':
         opt = torch.optim.Adam(spatial_nn_model.parameters(), lr=lr, weight_decay=weight_decay)
-    
+    elif optim=='adagrad':
+        opt = torch.optim.Adagrad(spatial_nn_model.parameters(), weight_decay=weight_decay)    
     loss_list=np.zeros(epochs)
 
     loss_function=torch.nn.MSELoss(reduction=loss_reduction)
     
     for epoch in range(epochs):
         if epoch%checkpoint==0:
-            print(f'epoch: {epoch}')
+            #print(f'epoch: {epoch}')
             if save_dir is not None:
                 torch.save(spatial_nn_model, f'{save_dir}/model_epoch_{epoch}.pt')
         
