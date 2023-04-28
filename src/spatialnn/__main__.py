@@ -65,7 +65,7 @@ def main():
 
   # train neural network
   mod, loss_list = train(S_torch, A_torch,
-                          S_hidden_list=[args.hidden_units_spatial], A_hidden_list=[10], 
+                          S_hidden_list=[args.hidden_units_spatial], A_hidden_list=[args.hidden_units_expression], 
                           epochs=args.epochs, checkpoint=args.checkpoint, 
                           save_dir=args.output_dir, optim=args.optimizer, seed=args.seed) 
   count_parameters(mod)
