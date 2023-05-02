@@ -392,10 +392,6 @@ def plot_depth(belayer_depth, S, figsize=(5,8), contours=True, contour_levels=4,
     if contours:
         CS=ax.tricontour(S[:,0], S[:,1], belayer_depth, levels=contour_levels, linewidths=contour_lw, colors='k', linestyles='solid')
         ax.clabel(CS, CS.levels, inline=True, fontsize=contour_fs)
-<<<<<<< HEAD
-    
-=======
     if colorbar:
         cbar=plt.colorbar(im1)
         cbar.ax.tick_params(labelsize=cbar_fs)
->>>>>>> main
