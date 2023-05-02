@@ -84,6 +84,9 @@ def main():
   for max_layers in range(2, args.max_num_layers+1):
     belayer_depth, belayer_labels = dp_related.get_depth_labels(mod, A, S, max_layers)
     dp_related.plot_clusters(belayer_labels, A, S, args.output_dir, max_layers, figsize=(6,6))
+    dp_related.plot_vector_field(mod, S, belayer_labels, max_layers, args.output_dir)
+  dp_related.plot_depth(belayer_depth, S, args.output_dir)
+
 
 if __name__ == '__main__':
   main()

@@ -6,6 +6,8 @@ import torch.nn.functional as F
 import torch.utils
 import torch.distributions
 
+from sklearn.preprocessing import normalize
+
 import matplotlib.pyplot as plt
 
 
@@ -359,11 +361,12 @@ def plot_clusters(belayer_labels, A, S, output_dir, max_layers, figsize=(5,8), c
     plt.axis('off')
     plt.savefig(f'{output_dir}/max{max_layers}_clusters.png')
 
-def plot_vector_field(model, S, figsize=(5,8), colors=None, color_palette=plt.cm.Dark2, normalize_grads=True):
+def plot_vector_field(model, S, belayer_labels, max_layers, output_dir, figsize=(5,8), colors=None, color_palette=plt.cm.Dark2, normalize_grads=True):
     x=torch.tensor(S,requires_grad=True)
-    grads=torch.autograd.grad(outputs=model.spatial_embedding(x).flatten(),inputs=x, grad_outputs=torch.ones_like(x[:,0]))[0]
+    grads=torch.autograd.grad(outputs=model.spatial_embedding(x).flatten(), inputs=x, grad_outputs=torch.ones_like(x[:,0]))[0]
 
     N=S.shape[0]
+    inds_all=np.random.choice(N,size=N,replace=False)
 
     if colors is None:
         colors=np.array([color_palette(i) for i in range(len(np.unique(belayer_labels)))])
@@ -374,17 +377,19 @@ def plot_vector_field(model, S, figsize=(5,8), colors=None, color_palette=plt.cm
     if normalize_grads:
         grads=normalize(grads,axis=1,norm='l2')
 
-    im1=ax.quiver(S[:,0],S[L,1], grads[:,0], grads[:,1], 
-                  scale=10, scale_units='inches', width=1.5e-3,color=spot_colors[inds_all])
+    im1=ax.quiver(S[inds_all,0], S[inds_all,1], grads[inds_all,0], grads[inds_all,1], 
+                  scale=10, scale_units='inches', width=1.5e-3, color=spot_colors[inds_all])
     plt.axis('off')
+    plt.savefig(f'{output_dir}/max{max_layers}_vector_field.png', dpi=500)
     
-def plot_depth(belayer_depth, S, figsize=(5,8), contours=True, contour_levels=4, contour_lw=1, contour_fs=10):
+def plot_depth(belayer_depth, S, output_dir, figsize=(5,8), contours=True, contour_levels=4, contour_lw=1, contour_fs=10):
     fig,ax=plt.subplots(figsize=figsize)
-
     im1=ax.scatter(S[:,0], S[:,1], c=belayer_depth, cmap='Reds', s=20)
     plt.axis('off')
-
     if contours:
         CS=ax.tricontour(S[:,0], S[:,1], belayer_depth, levels=contour_levels, linewidths=contour_lw, colors='k', linestyles='solid')
         ax.clabel(CS, CS.levels, inline=True, fontsize=contour_fs)
+
+    plt.savefig(f'{output_dir}/depth_countours.png')
+
     
