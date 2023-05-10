@@ -147,7 +147,9 @@ def plot_gene_pwlinear(gene_name, pw_fit_dict, belayer_labels, belayer_depth, bi
             # print(slope,intercept)
 
             plt.plot( unique_binned_depths[pts_seg], intercept + slope*unique_binned_depths[pts_seg], color='black', alpha=1, linewidth=2 )
+    plt.title(gene_name, fontsize=20)
     plt.xticks(fontsize=ticksize)
     plt.yticks(fontsize=ticksize)
+    plt.savefig(f'./figures/{gene_name}_pwlinear.png', bbox_inches='tight', dpi=300)
     
     
