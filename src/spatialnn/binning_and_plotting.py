@@ -151,5 +151,6 @@ def plot_gene_pwlinear(gene_name, pw_fit_dict, belayer_labels, belayer_depth, bi
     plt.xticks(fontsize=ticksize)
     plt.yticks(fontsize=ticksize)
     plt.savefig(f'./figures/{gene_name}_pwlinear.png', bbox_inches='tight', dpi=300)
+    plt.close()
     
     
