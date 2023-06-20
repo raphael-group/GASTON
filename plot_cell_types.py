@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from scipy.stats import linregress
 from matplotlib.collections import LineCollection
 
-layer_boundary_label='Layer boundaries \n from expression or cell type proportion'
+layer_boundary_label='Layer boundaries \n from expression or \n cell type proportion'
 
 # example of ct_colors: {'Oligodendrocytes': 'C6', 'Granule': 'mediumseagreen', 'Purkinje': 'red', 'Bergmann': 'C4', 'MLI1': 'gold', 'MLI2': 'goldenrod',  'Astrocytes': 'C0', 'Golgi': 'C9', 'Fibroblast': 'C5'}
 
@@ -118,7 +118,26 @@ layer_boundary_label='Layer boundaries \n from expression or cell type proportio
 #                 print(f'layer {int(t)} cell type: {ct}, p-val: {pv}')
 #             print('')
 
-############################################################################################################            
+############################################################################################################
+
+def get_layer_cts(binning_output, layer_ct_threshold):
+    layer_ct_markers={}
+    belayer_labels=binning_output['belayer_labels'] # unbinned labels
+    cell_type_mat=binning_output['cell_type_mat'] # unbinned cell types
+    cell_type_names=binning_output['cell_type_names']
+    L=len(np.unique(belayer_labels))
+
+    for t in range(L):
+        pts_t=np.where(belayer_labels==t)[0]
+        ct_counts_t=np.sum(cell_type_mat[pts_t,:],0)
+
+        argsort_cts=np.argsort(ct_counts_t)[::-1]
+        i=0
+        while np.sum(ct_counts_t[argsort_cts[:i]]) / np.sum(ct_counts_t) < layer_ct_threshold:
+            i+=1
+        layer_t_cts=cell_type_names[argsort_cts[:i]]
+        layer_ct_markers[t]=cell_type_names[argsort_cts[:i]]
+    return layer_ct_markers
             
 def plot_ct_props2(binning_output, ct_colors=None, color_palette=plt.cm.tab20, 
                    ct_pseudocounts=None, linewidth=8, figsize=(15,6),
@@ -152,20 +171,7 @@ def plot_ct_props2(binning_output, ct_colors=None, color_palette=plt.cm.tab20,
     fig,ax=plt.subplots(figsize=figsize)
 
     # get biggest cell types in layer
-    layer_ct_markers={}
-    belayer_labels=binning_output['belayer_labels'] # unbinned labels
-    cell_type_mat=binning_output['cell_type_mat'] # unbinned cell types
-
-    for t in range(L):
-        pts_t=np.where(belayer_labels==t)[0]
-        ct_counts_t=np.sum(cell_type_mat[pts_t,:],0)
-
-        argsort_cts=np.argsort(ct_counts_t)[::-1]
-        i=0
-        while np.sum(ct_counts_t[argsort_cts[:i]]) / np.sum(ct_counts_t) < layer_ct_threshold:
-            i+=1
-        layer_t_cts=cell_type_names[argsort_cts[:i]]
-        layer_ct_markers[t]=cell_type_names[argsort_cts[:i]]
+    layer_ct_markers=get_layer_cts(binning_output, layer_ct_threshold)
         
     if ct_colors is None:
         ct_colors_list=[color_palette(i) for i in range(20)]

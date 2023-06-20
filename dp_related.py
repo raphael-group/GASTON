@@ -8,8 +8,6 @@ import torch.distributions
 
 import matplotlib.pyplot as plt
 
-from sklearn.preprocessing import normalize
-
 
 def rotate_by_theta(coords, theta, rotate_about=np.array([0,0])):
     """
@@ -348,50 +346,23 @@ def get_depth_labels(model, A, S, num_layers, num_buckets=150):
     
     return belayer_depth,belayer_labels
 
-def plot_clusters(belayer_labels, A, S, figsize=(5,8), colors=None, color_palette=plt.cm.Dark2, s=20,labels=None):
+def filter_rescale_boundary(counts_mat, belayer_depth, belayer_labels, boundary_locs):
     
-    fig,ax=plt.subplots(figsize=figsize)
-
-    if colors is None:
-        colors=np.array([color_palette(i) for i in range(len(np.unique(belayer_labels)))])
-
-    for i,t in enumerate(np.unique(belayer_labels)):
-        pts_t=np.where(belayer_labels==t)[0]
-        l=None
-        if labels is not None:
-            l=labels[i]
-        ax.scatter(S[pts_t,0], S[pts_t,1],s=s, color=colors[int(t)], label=l)
-    plt.axis('off')
-
-def plot_vector_field(model, belayer_labels, S, figsize=(5,8), colors=None, color_palette=plt.cm.Dark2, normalize_grads=True, scale=10, width=1.5e-3):
-    x=torch.tensor(S,requires_grad=True)
-    grads=torch.autograd.grad(outputs=model.spatial_embedding(x).flatten(),inputs=x, grad_outputs=torch.ones_like(x[:,0]))[0]
-
-    N=S.shape[0]
-    L=len(np.unique(belayer_labels))
-
-    if colors is None:
-        colors=np.array([color_palette(i) for i in range(L)])
-    spot_colors=colors[[int(t) for t in belayer_labels]]
-
-    fig,ax=plt.subplots(figsize=figsize)
-
-    if normalize_grads:
-        grads=normalize(grads,axis=1,norm='l2')
-
-    im1=ax.quiver(S[:,0],S[:,1], grads[:,0], grads[:,1], 
-                  scale=scale, scale_units='inches', width=width,color=spot_colors)
-    plt.axis('off')
+    counts_mat_subset=counts_mat[:,boundary_locs]
+    belayer_labels_subset=belayer_labels[boundary_locs]
+    belayer_labels_subset -= np.min( np.unique( belayer_labels[boundary_locs] ) )
+    belayer_depth_subset=belayer_depth[boundary_locs]
     
-def plot_depth(belayer_depth, S, figsize=(5,8), contours=True, contour_levels=4, contour_lw=1, contour_fs=10, colorbar=False,s=20,cbar_fs=10):
-    fig,ax=plt.subplots(figsize=figsize)
+    ####
+    
+    belayer_depth_subset0=belayer_depth_subset[belayer_labels_subset==0]
+    belayer_depth_subset1=belayer_depth_subset[belayer_labels_subset==1]
 
-    im1=ax.scatter(S[:,0], S[:,1], c=belayer_depth, cmap='Reds', s=s)
-    plt.axis('off')
+    depth_ratio=np.std( belayer_depth_subset1 ) / np.std( belayer_depth_subset0 )
 
-    if contours:
-        CS=ax.tricontour(S[:,0], S[:,1], belayer_depth, levels=contour_levels, linewidths=contour_lw, colors='k', linestyles='solid')
-        ax.clabel(CS, CS.levels, inline=True, fontsize=contour_fs)
-    if colorbar:
-        cbar=plt.colorbar(im1)
-        cbar.ax.tick_params(labelsize=cbar_fs)
+    belayer_depth_subset0_new=((belayer_depth_subset0 - np.max(belayer_depth_subset0)) * depth_ratio) + np.max(belayer_depth_subset0)
+
+    belayer_depth_subset[belayer_labels_subset==0] = belayer_depth_subset0_new
+    
+    return counts_mat_subset, belayer_labels_subset, belayer_depth_subset
+    
