@@ -6,6 +6,11 @@ from scipy.stats import chi2, linregress
 from sklearn.preprocessing import normalize
 
 
+def add_pc(counts_mat, pc=1):
+    pseudo_counts_mat=counts_mat+pc
+    exposures=np.sum(pseudo_counts_mat,axis=0)
+    return pseudo_counts_mat, exposures
+
 def llr_poisson(y, xcoords=None, exposure=None):
     s0, i0 = poisson_regression(y, xcoords=0*xcoords, exposure=exposure)
     s1, i1 = poisson_regression(y, xcoords=xcoords, exposure=exposure)
@@ -122,16 +127,19 @@ def get_discont_mat(s_mat, i_mat, belayer_labels, belayer_depth, num_layers):
 # slope_mat, intercept_mat: G' x L, entries are slopes/intercepts
 # discont_mat: G' x L-1, entries are discontinuity at layer boundaries
 # pv_mat: G' x L, entries are p-values from LLR test (slope=0 vs slope != 0)
-def pw_linear_fit(counts_mat, belayer_labels, belayer_depth, cell_type_df, ct_list, 
-                  umi_threshold=None, idx_kept=None, pseudocount=1, t=0.1):
+def pw_linear_fit(counts_mat, belayer_labels, belayer_depth, cell_type_df, ct_list,
+                  umi_threshold=500, idx_kept=None, pc=1, t=0.1):
     
     if idx_kept is None:
         idx_kept=np.where(np.sum(counts_mat,1) > umi_threshold)[0]
-    pseudo_counts_mat=counts_mat+pseudocount
-    exposures=np.sum(pseudo_counts_mat,axis=0)
+    # pseudo_counts_mat=counts_mat+pseudocount
+    # exposures=np.sum(pseudo_counts_mat,axis=0)
+    pseudo_counts_mat, exposures = add_pc(counts_mat, pc=pc)
+    
     cmat=pseudo_counts_mat[idx_kept,:]
     
     G,N=cmat.shape
+        
     
     L=len(np.unique(belayer_labels))
     
@@ -148,7 +156,6 @@ def pw_linear_fit(counts_mat, belayer_labels, belayer_depth, cell_type_df, ct_li
     slope_mat=np.zeros((len(idx_kept), L))
     intercept_mat=np.zeros((len(idx_kept), L))
 
-    t=0.10
     inds1= (pv_mat < t)
     inds0= (pv_mat >= t)
 
@@ -162,7 +169,10 @@ def pw_linear_fit(counts_mat, belayer_labels, belayer_depth, cell_type_df, ct_li
           
     pw_fit_dict['all_cell_types']=(slope_mat,intercept_mat,discont_mat, pv_mat)
     
-    # TWO: compute for each cell type in ct_list
+    # TWO: compute for each cell type in ct_list, if you have cell type info
+    if cell_type_df is None:
+        return pw_fit_dict
+    
     cell_type_mat=cell_type_df.to_numpy()
     cell_type_names=np.array(cell_type_df.columns)
     for ct in ct_list:
@@ -186,7 +196,6 @@ def pw_linear_fit(counts_mat, belayer_labels, belayer_depth, cell_type_df, ct_li
         slope_mat_ct=np.zeros((len(idx_kept), L))
         intercept_mat_ct=np.zeros((len(idx_kept), L))
 
-        t=0.10
         inds1_ct= (pv_mat_ct < t)
         inds0_ct= (pv_mat_ct >= t)
 
