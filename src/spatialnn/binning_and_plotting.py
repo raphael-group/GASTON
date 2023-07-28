@@ -2,27 +2,60 @@ from scipy.stats import mode
 import numpy as np
 import matplotlib.pyplot as plt
 
+from spatialnn import segmented_fit
+
 # counts mat has to be of shape G x N
 def bin_data(counts_mat, belayer_labels, belayer_depth, 
-              cell_type_df, gene_labels, num_bins=70, 
-             idx_kept=None, umi_threshold=500):
+              cell_type_df, gene_labels, num_bins=70, num_bins_per_layer=None,
+             idx_kept=None, umi_threshold=500, pc=1):
     
     if idx_kept is None:
         idx_kept=np.where(np.sum(counts_mat,1) > umi_threshold)[0]
     gene_labels_idx=gene_labels[idx_kept]
     
-    pseudo_counts_mat=counts_mat+1
-    exposure=np.sum(pseudo_counts_mat,axis=0)
+    # pseudo_counts_mat=counts_mat+1
+    # exposure=np.sum(pseudo_counts_mat,axis=0)
+    pseudo_counts_mat, exposure = segmented_fit.add_pc(counts_mat, pc=pc)
+    
     cmat=pseudo_counts_mat[idx_kept,:]
     
-    cell_type_mat=cell_type_df.to_numpy()
-    cell_type_names=np.array(cell_type_df.columns)
+    if cell_type_df is not None:
+        cell_type_mat=cell_type_df.to_numpy()
+        cell_type_names=np.array(cell_type_df.columns)
+    else:
+        N=len(exposure)
+        cell_type_mat=np.ones((N,1))
+        cell_type_names=['All']
 
     G,N=cmat.shape
 
     # BINNING
-    depth_min, depth_max=np.floor(np.min(belayer_depth))-0.5, np.ceil(np.max(belayer_depth))+0.5
-    bins=np.linspace(depth_min, depth_max, num=num_bins+1)
+    if num_bins_per_layer is not None:
+        bins=np.array([])
+        L=len(np.unique(belayer_labels))
+        
+        for l in range(L):
+            depth_l=belayer_depth[np.where(belayer_labels==l)[0]]
+            
+            if l>0:
+                depth_lm1=belayer_depth[np.where(belayer_labels==l-1)[0]]
+                depth_left=0.5*(np.min(depth_l) + np.max(depth_lm1))
+            else:
+                depth_left=np.min(depth_l)-0.01
+                
+            if l<L-1:
+                depth_lp1=belayer_depth[np.where(belayer_labels==l+1)[0]]
+                depth_right=0.5*(np.max(depth_l) + np.min(depth_lp1))
+            else:
+                depth_right=np.max(depth_l)+0.01
+            
+            bins_l=np.linspace(depth_left, depth_right, num=num_bins_per_layer[l]+1)
+            if l!=0:
+                bins_l=bins_l[1:]
+            bins=np.concatenate((bins, bins_l))
+    else:
+        depth_min, depth_max=np.floor(np.min(belayer_depth))-0.5, np.ceil(np.max(belayer_depth))+0.5
+        bins=np.linspace(depth_min, depth_max, num=num_bins+1)
 
     unique_binned_depths=np.array( [0.5*(bins[i]+bins[i+1]) for i in range(len(bins)-1)] )
     binned_depth_inds=np.digitize(belayer_depth, bins)-1 #ie [1,0,3,15,...]
@@ -91,7 +124,8 @@ def bin_data(counts_mat, belayer_labels, belayer_depth,
 
 def plot_gene_pwlinear(gene_name, pw_fit_dict, belayer_labels, belayer_depth, binning_output, 
                        cell_type=None, spot_threshold=0.25, pt_size=10, 
-                       colors=None, color_palette=plt.cm.Dark2, linear_fit=True, layer_list=None, ticksize=20, figsize=(7,3)):
+                       colors=None, linear_fit=True, lw=2, layer_list=None, ticksize=20, figsize=(7,3),
+                      offset=1, save=False, save_dir="./figures"):
     
     # idx_kept=np.where(np.sum(binning_output['counts_mat'],1) > umi_threshold)[0]
     # gene_labels_idx=gene_labels[idx_kept]
@@ -128,29 +162,31 @@ def plot_gene_pwlinear(gene_name, pw_fit_dict, belayer_labels, belayer_depth, bi
         pts_seg=np.where(binned_labels==seg)[0]
         if cell_type is not None:
             pts_seg=[p for p in pts_seg if binned_cell_type_mat[p,ct_ind] / binned_cell_type_mat[p,:].sum() > spot_threshold]
-        
-        if colors is not None:
-            plt.scatter(unique_binned_depths[pts_seg],
-                       np.log( (binned_count[gene,pts_seg]) / binned_exposure[pts_seg] ), color=colors[seg], s=pt_size)
+        if colors is None:
+            c=None
         else:
-            c = np.array([color_palette(i) for i in range(len(np.unique(belayer_labels)))])
-            plt.scatter(unique_binned_depths[pts_seg], 
-                        np.log( (binned_count[gene,pts_seg]) / binned_exposure[pts_seg] ), color=c[seg], s=pt_size)
+            c=colors[seg]
+        
+        xax=unique_binned_depths[pts_seg]
+        yax=np.log( (binned_count[gene,pts_seg] / binned_exposure[pts_seg]) * offset )
+        
+        plt.scatter(xax, yax, color=c, s=pt_size)
+        
         if linear_fit:
             if cell_type is None:
                 slope_mat, intercept_mat, _, _ = pw_fit_dict['all_cell_types']
             else:
                 slope_mat, intercept_mat, _, _ = pw_fit_dict[cell_type]
-            
+
             slope=slope_mat[gene,seg]
             intercept=intercept_mat[gene,seg]
-            # print(slope,intercept)
-
-            plt.plot( unique_binned_depths[pts_seg], intercept + slope*unique_binned_depths[pts_seg], color='black', alpha=1, linewidth=2 )
-    plt.title(gene_name, fontsize=20)
+            plt.plot( unique_binned_depths[pts_seg], np.log(offset) + intercept + slope*unique_binned_depths[pts_seg], color='grey', alpha=1, lw=lw )
+                
     plt.xticks(fontsize=ticksize)
     plt.yticks(fontsize=ticksize)
-    plt.savefig(f'./figures/{gene_name}_pwlinear.png', bbox_inches='tight', dpi=300)
-    plt.close()
+    plt.title(f"{gene_name}")
+    if save:
+        plt.savefig(f"{save_dir}/{gene_name}_pwlinear.png", bbox_inches="tight")
+        plt.close()
     
     
