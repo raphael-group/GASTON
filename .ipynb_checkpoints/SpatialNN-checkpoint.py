@@ -4,7 +4,8 @@ import torch.nn.functional as F
 import torch.utils
 import torch.distributions
 import numpy as np
-
+import random
+import os
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 ##################################################################################
@@ -52,8 +53,9 @@ class SpatialNN(nn.Module):
         S_layer_list=[2] + S_hidden_list + [1]
         S_layers=[]
         for l in range(len(S_layer_list)-1):
+            # add linear layer
             S_layers.append(nn.Linear(S_layer_list[l], S_layer_list[l+1]))
-
+            # add activation function except for last layer
             if l != len(S_layer_list)-2:
                 S_layers.append(activation_fn)
                 
@@ -63,8 +65,9 @@ class SpatialNN(nn.Module):
         A_layer_list=[1] + A_hidden_list + [G]
         A_layers=[]
         for l in range(len(A_layer_list)-1):
+            # add linear layer
             A_layers.append(nn.Linear(A_layer_list[l], A_layer_list[l+1]))
-
+            # add activation function except for last layer
             if l != len(A_layer_list)-2:
                 A_layers.append(activation_fn)
             
@@ -93,8 +96,8 @@ class SpatialNN(nn.Module):
 def train(S, A, 
           spatial_nn_model=None, S_hidden_list=None, A_hidden_list=None, activation_fn=nn.ReLU(),
           epochs=1000, batch_size=None, 
-          checkpoint=100, SAVE_PATH=None, loss_reduction='mean',
-          optim='sgd', lr=1e-3, weight_decay=0, momentum=0, seed=0):
+          checkpoint=100, save_dir=None, loss_reduction='mean',
+          optim='adam', lr=1e-3, weight_decay=0, momentum=0, seed=0):
     """
     Train a SpatialNN from scratch
     
@@ -112,7 +115,7 @@ def train(S, A,
         batch size of neural network
     checkpoint
         save the current NN when the epoch is a multiple of checkpoint
-    SAVE_PATH
+    save_dir
         folder to save NN at checkpoints
     loss_reduction
         either 'mean' or 'sum' for MSELoss
@@ -125,7 +128,7 @@ def train(S, A,
     momentum
         momentum parameter, if using SGD optimizer
     """
-    torch.manual_seed(seed)
+    set_seeds(seed)
     N,G=A.shape
     
     if spatial_nn_model == None:
@@ -135,7 +138,8 @@ def train(S, A,
         opt = torch.optim.SGD(spatial_nn_model.parameters(), lr=lr, momentum=momentum, weight_decay=weight_decay)
     elif optim=='adam':
         opt = torch.optim.Adam(spatial_nn_model.parameters(), lr=lr, weight_decay=weight_decay)
-    
+    elif optim=='adagrad':
+        opt = torch.optim.Adagrad(spatial_nn_model.parameters(), weight_decay=weight_decay)    
     loss_list=np.zeros(epochs)
 
     loss_function=torch.nn.MSELoss(reduction=loss_reduction)
@@ -143,8 +147,8 @@ def train(S, A,
     for epoch in range(epochs):
         if epoch%checkpoint==0:
             print(f'epoch: {epoch}')
-            if SAVE_PATH is not None:
-                torch.save(spatial_nn_model, SAVE_PATH + f'model_epoch_{epoch}.pt')
+            if save_dir is not None:
+                torch.save(spatial_nn_model, f'{save_dir}/model_epoch_{epoch}.pt')
         
         if batch_size is not None:
             # take non-overlapping random samples of size batch_size
@@ -175,6 +179,18 @@ def train(S, A,
             
     return spatial_nn_model, loss_list
     
+
+def set_seeds(seed):
+    torch.manual_seed(seed)
+    random.seed(seed)
+    os.environ['PYTHONHASHSEED'] = str(seed)
+    torch.cuda.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed) # if you are using multi-GPU.
+    np.random.seed(seed) # Numpy module.
+    torch.manual_seed(seed)
+    torch.backends.cudnn.benchmark = False
+    torch.backends.cudnn.deterministic = True
+
 def get_loss(mod, St, At):
     N,G=At.shape
     errr=(mod(St) - At)**2
