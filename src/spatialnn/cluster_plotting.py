@@ -79,7 +79,7 @@ def plot_vector_field(model, belayer_labels, S, transform_mat=None, figsize=(5,8
                   scale=scale, scale_units='inches', width=width,color=spot_colors)
     plt.axis('off')
     
-def plot_depth(belayer_depth, S, figsize=(5,8), contours=True, contour_levels=4, contour_lw=1, contour_fs=10, colorbar=False,s=20,cbar_fs=10, axis_off=True):
+def plot_depth(belayer_depth, S, figsize=(5,8), contours=True, contour_levels=4, contour_lw=1, contour_fs=10, colorbar=True,s=20,cbar_fs=10, axis_off=True):
     fig,ax=plt.subplots(figsize=figsize)
 
     im1=ax.scatter(S[:,0], S[:,1], c=belayer_depth, cmap='Reds', s=s)
