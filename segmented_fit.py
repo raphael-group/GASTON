@@ -45,7 +45,7 @@ def segmented_poisson_regression(count, totalumi, dp_labels, depth, num_layers,
     :return: A dataframe for the offset and slope of piecewise linear expression function, size of G genes by 2*L layers.
     :rtype: pd.DataFrame
     """
-
+    
     G, N = count.shape
     unique_layers = np.sort(np.unique(dp_labels))
     # L = len(unique_layers)
@@ -59,6 +59,7 @@ def segmented_poisson_regression(count, totalumi, dp_labels, depth, num_layers,
     intercept0_matrix=np.zeros((G,L))
     
     pval_matrix=np.zeros((G,L))
+
 
     for g in trange(G):
         for t in unique_layers:
@@ -119,6 +120,9 @@ def get_discont_mat(s_mat, i_mat, belayer_labels, belayer_depth, num_layers):
 # umi_threshold: restrict to genes with total UMI count across all spots > umi_threshold
 # after filtering, there are G' genes
 # t: p-value threshold for LLR test (slope = 0 vs slope != 0)
+# depth_mult_factor: if the range of depth values is too large (causes overflows)
+#    then scale depth values by depth_mult_factor (ie depth -> depth * mult_factor)
+#    to compute Poisson regressoin fits that are more numerically stable
 
 # OUTPUTS:
 # pw_fit_dict: dictionary indexed by cell types, as well as 'all_cell_types'
@@ -128,7 +132,8 @@ def get_discont_mat(s_mat, i_mat, belayer_labels, belayer_depth, num_layers):
 # discont_mat: G' x L-1, entries are discontinuity at layer boundaries
 # pv_mat: G' x L, entries are p-values from LLR test (slope=0 vs slope != 0)
 def pw_linear_fit(counts_mat, belayer_labels, belayer_depth, cell_type_df, ct_list,
-                  umi_threshold=500, idx_kept=None, pc=1, t=0.1):
+                  umi_threshold=500, idx_kept=None, pc=1, t=0.1,
+                 depth_mult_factor=1):
     
     if idx_kept is None:
         idx_kept=np.where(np.sum(counts_mat,1) > umi_threshold)[0]
@@ -137,8 +142,11 @@ def pw_linear_fit(counts_mat, belayer_labels, belayer_depth, cell_type_df, ct_li
     pseudo_counts_mat, exposures = add_pc(counts_mat, pc=pc)
     
     cmat=pseudo_counts_mat[idx_kept,:]
-    
     G,N=cmat.shape
+    
+    # 
+    belayer_depth=belayer_depth * depth_mult_factor
+
         
     
     L=len(np.unique(belayer_labels))
@@ -166,7 +174,8 @@ def pw_linear_fit(counts_mat, belayer_labels, belayer_depth, cell_type_df, ct_li
     intercept_mat[inds0] = i0_mat[inds0]
 
     discont_mat=get_discont_mat(slope_mat, intercept_mat, belayer_labels, belayer_depth, L)
-          
+    
+    slope_mat = slope_mat * depth_mult_factor
     pw_fit_dict['all_cell_types']=(slope_mat,intercept_mat,discont_mat, pv_mat)
     
     # TWO: compute for each cell type in ct_list, if you have cell type info
@@ -206,7 +215,8 @@ def pw_linear_fit(counts_mat, belayer_labels, belayer_depth, cell_type_df, ct_li
         intercept_mat_ct[inds0_ct] = i0_ct[inds0_ct]
         
         discont_mat=get_discont_mat(slope_mat_ct, intercept_mat_ct, belayer_labels_ct, belayer_depth_ct, L)
-
+    
+        slope_mat_ct = slope_mat_ct * depth_mult_factor
         pw_fit_dict[ct]=(slope_mat_ct, intercept_mat_ct, discont_mat, pv_mat_ct)
           
     return pw_fit_dict

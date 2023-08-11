@@ -325,10 +325,11 @@ def find_segments_from_dp(error_mat, segment_map, l, xcoords=None):
 # S: numpy array of size N x 2 (rows are spots, cols are coords)
 
 # OUTPUT: labels
-def get_depth_labels(model, A, S, num_layers, num_buckets=150):
+def get_depth_labels(model, A, S, num_layers, num_buckets=150, belayer_depth=None):
     N=A.shape[0]
     S_torch=torch.Tensor(S)
-    belayer_depth=model.spatial_embedding(torch.Tensor(S)).detach().numpy().flatten()
+    if belayer_depth is None:
+        belayer_depth=model.spatial_embedding(torch.Tensor(S)).detach().numpy().flatten()
     
     kmax=num_layers
 

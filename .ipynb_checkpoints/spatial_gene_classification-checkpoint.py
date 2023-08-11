@@ -6,7 +6,6 @@ def get_discont_genes(pw_fit_dict, binning_output, q=0.95, cell_type=None):
         cell_type = 'all_cell_types'
     
     _,_,discont_mat,_=pw_fit_dict[cell_type]
-    # print(discont_mat)
     
     discont_q=np.tile( np.quantile(np.abs(discont_mat), q,0), (discont_mat.shape[0],1))
     discont_genes=list( np.where(np.sum(np.abs(discont_mat) > discont_q,1))[0] )
