@@ -11,9 +11,9 @@ def add_pc(counts_mat, pc=1):
     exposures=np.sum(pseudo_counts_mat,axis=0)
     return pseudo_counts_mat, exposures
 
-def llr_poisson(y, xcoords=None, exposure=None):
-    s0, i0 = poisson_regression(y, xcoords=0*xcoords, exposure=exposure)
-    s1, i1 = poisson_regression(y, xcoords=xcoords, exposure=exposure)
+def llr_poisson(y, xcoords=None, exposure=None, alpha=0):
+    s0, i0 = poisson_regression(y, xcoords=0*xcoords, exposure=exposure, alpha=alpha)
+    s1, i1 = poisson_regression(y, xcoords=xcoords, exposure=exposure, alpha=alpha)
     
     ll0=poisson_likelihood(s0,i0,y,xcoords=xcoords,exposure=exposure)
     ll1=poisson_likelihood(s1,i1,y,xcoords=xcoords,exposure=exposure)
@@ -32,7 +32,7 @@ def poisson_regression(y, xcoords=None, exposure=None, alpha=0):
     return [clf.coef_[0], clf.intercept_ ]
 
 def segmented_poisson_regression(count, totalumi, dp_labels, depth, num_layers,
-                                 opt_function=poisson_regression):
+                                 opt_function=poisson_regression, reg=0):
     """ Fit Poisson regression per gene per layer.
     :param count: UMI count matrix of SRT gene expression, G genes by n spots
     :type count: np.array
@@ -68,7 +68,7 @@ def segmented_poisson_regression(count, totalumi, dp_labels, depth, num_layers,
             
             # need to be enough points in layer
             if len(pts_t) > 10:
-                s0, i0, s1, i1, pval = llr_poisson(count[g,pts_t], xcoords=depth[pts_t], exposure=totalumi[pts_t])
+                s0, i0, s1, i1, pval = llr_poisson(count[g,pts_t], xcoords=depth[pts_t], exposure=totalumi[pts_t], alpha=reg)
             else:
                 s0=np.Inf
                 i0=np.Inf
@@ -106,6 +106,7 @@ def get_discont_mat(s_mat, i_mat, belayer_labels, belayer_depth, num_layers):
             discont_mat[:,l]=0
     return discont_mat
 
+
 ######################
 
 
@@ -133,7 +134,7 @@ def get_discont_mat(s_mat, i_mat, belayer_labels, belayer_depth, num_layers):
 # pv_mat: G' x L, entries are p-values from LLR test (slope=0 vs slope != 0)
 def pw_linear_fit(counts_mat, belayer_labels, belayer_depth, cell_type_df, ct_list,
                   umi_threshold=500, idx_kept=None, pc=1, t=0.1,
-                 depth_mult_factor=1):
+                 depth_mult_factor=1, reg=0):
     
     if idx_kept is None:
         idx_kept=np.where(np.sum(counts_mat,1) > umi_threshold)[0]
@@ -144,11 +145,7 @@ def pw_linear_fit(counts_mat, belayer_labels, belayer_depth, cell_type_df, ct_li
     cmat=pseudo_counts_mat[idx_kept,:]
     G,N=cmat.shape
     
-    # 
     belayer_depth=belayer_depth * depth_mult_factor
-
-        
-    
     L=len(np.unique(belayer_labels))
     
     pw_fit_dict={}
@@ -159,7 +156,7 @@ def pw_linear_fit(counts_mat, belayer_labels, belayer_depth, cell_type_df, ct_li
                                                    exposures, 
                                                    belayer_labels, 
                                                    belayer_depth,
-                                                   L)
+                                                   L, reg=reg)
     
     slope_mat=np.zeros((len(idx_kept), L))
     intercept_mat=np.zeros((len(idx_kept), L))
