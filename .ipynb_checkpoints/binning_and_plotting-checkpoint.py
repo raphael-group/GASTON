@@ -306,7 +306,7 @@ def plot_gene_pwlinear2(gene_name, pw_fit_dict, belayer_labels, belayer_depth, b
                 right_bps.append(unique_binned_depths[i+1])
         
         for i in layer_list[:-1]:
-            plt.axvline((left_bps[i]+right_bps[i])*0.5, color='black', ls='--', linewidth=1.5)
+            plt.axvline((left_bps[i]+right_bps[i])*0.5, color='black', ls='--', linewidth=1.5, alpha=0.2)
 
     
     
