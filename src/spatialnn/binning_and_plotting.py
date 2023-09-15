@@ -120,6 +120,7 @@ def bin_data(counts_mat, belayer_labels, belayer_depth,
     to_return['pseudo_counts_mat_idx']=cmat
     to_return['cell_type_mat']=cell_type_mat
     to_return['cell_type_names']=cell_type_names
+    to_return['idx_kept']=idx_kept
     to_return['gene_labels_idx']=gene_labels_idx
     
     to_return['binned_depths']=binned_depths
