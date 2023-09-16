@@ -1,4 +1,4 @@
 # GASTON
 
-Documentation coming soon!
+Documentation and examples coming soon!
 
