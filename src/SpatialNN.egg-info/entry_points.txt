@@ -1,2 +1,0 @@
-[console_scripts]
-spatialnn = spatialnn.__main__:main

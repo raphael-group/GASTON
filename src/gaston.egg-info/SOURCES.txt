@@ -1,0 +1,13 @@
+LICENSE
+README.md
+pyproject.toml
+setup.py
+src/gaston.egg-info/PKG-INFO
+src/gaston.egg-info/SOURCES.txt
+src/gaston.egg-info/dependency_links.txt
+src/gaston.egg-info/entry_points.txt
+src/gaston.egg-info/requires.txt
+src/gaston.egg-info/top_level.txt
+src/gaston/__init__.py
+src/gaston/__main__.py
+src/gaston/parse_args.py

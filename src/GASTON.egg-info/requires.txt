@@ -1,0 +1,9 @@
+torch
+matplotlib
+pandas
+scikit-learn
+numpy
+jupyterlab
+seaborn
+tqdm
+scipy

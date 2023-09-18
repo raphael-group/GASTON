@@ -1,26 +1,31 @@
-# SpatialNN
+# GASTON
 
-loading olfactory model:
+## Overview
 
-nhS=50 # USE THIS - best looking layers
-partition='lower'
-optimizer='adam'
-trial=3
+GASTON is an interpretable deep learning model for learning the _topography_ of a tissue slice, using spatially resolved transcriptomics (SRT) data. Specifically, GASTON models gene expression topography by learning the _isodepth_, a 1-D coordinate describing tissue geometry (i.e. spatial domains) and continuous gene expression gradients.
 
-folder='/n/fs/ragr-research/projects/network-mutations/manifold-alignment/olfactory_glmpca/intermediate_NN_v2/'
-folder+=f'nhS_{nhS}_optimizer_{optimizer}_partition_{partition}_trial_{trial}/'
+## Installation
+Install using pip (will add to pypi soon)
 
-mod=torch.load(folder+'model_epoch_20000.pt')
+```
+cd GASTON
+pip install -e .
 
-loading cerebellum model:
+```
 
-nhS=200
-trial=0
-optimizer='adam'
-partition='all'
+## Software dependencies
+* torch
+* matplotlib
+* pandas
+* scikit-learn
+* numpy
+* jupyterlab
+* seaborn
+* tqdm
+* scipy
 
-folder='/n/fs/ragr-research/projects/network-mutations/manifold-alignment/slideseq_cerebellum/intermediate_NN_v2/'
-folder+=f'nhS_{nhS}_optimizer_{optimizer}_partition_{partition}_trial_{trial}/'
+See the `environment.yml` file
 
-
-mod=torch.load(folder+'model_epoch_20000.pt')
+## Getting started
+Try out the Jupyter notebook tutorial: `tutorial.ipynb`
+A readthedocs is coming soon!

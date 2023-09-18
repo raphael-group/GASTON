@@ -1,0 +1,23 @@
+Metadata-Version: 2.1
+Name: GASTON
+Version: 0.0.1
+Summary: A small example package
+Home-page: https://github.com/raphael-group/GASTON
+Author: Uthsav Chitra
+Author-email: Uthsav Chitra <uchitra@princeton.edu>
+License: BSD
+Project-URL: Homepage, https://github.com/raphael-group/GASTON
+Keywords: spatial transcriptomics,neural network,tissue layer
+Platform: Linux
+Platform: MacOs
+Platform: Windows
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: BSD License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
+License-File: LICENSE
+
+# GASTON
+
+todo!
