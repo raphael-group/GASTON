@@ -1,4 +1,3 @@
 # GASTON
 
-Documentation and examples coming soon!
-
+Work in progress. Documentation and examples coming very soon!
