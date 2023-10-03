@@ -27,5 +27,6 @@ pip install -e .
 See the `environment.yml` file
 
 ## Getting started
-Try out the Jupyter notebook tutorial: `tutorial.ipynb`
+Try out the Jupyter notebook tutorial: `tutorial.ipynb`. Note you have to download the counts matrix here: https://drive.google.com/drive/folders/1GiibZwhpzlur8C1hNHa1g7I4jsc1Gmn7?usp=sharing
+
 A readthedocs is coming soon!
