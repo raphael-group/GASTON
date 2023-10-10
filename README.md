@@ -5,7 +5,13 @@
 GASTON is an interpretable deep learning model for learning the _topography_ of a tissue slice, using spatially resolved transcriptomics (SRT) data. Specifically, GASTON models gene expression topography by learning the _isodepth_, a 1-D coordinate describing tissue geometry (i.e. spatial domains) and continuous gene expression gradients.
 
 ## Installation
-Install using pip (will add to pypi soon)
+First install conda environment from `environment.yml` file:
+
+```
+conda env create -f environment.yml
+```
+
+Then install GASTON using pip (will add to pypi soon!)
 
 ```
 cd GASTON
