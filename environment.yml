@@ -258,6 +258,5 @@ dependencies:
   - zlib=1.2.13=hd590300_5
   - zstd=1.5.5=hfc55251_0
   - pip:
-      - gaston==0.0.1
       - glmpca==0.1.0
 prefix: /n/fs/ragr-data/users/uchitra/miniconda3/envs/gaston-package
