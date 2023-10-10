@@ -15,6 +15,7 @@ conda env create -f environment.yml
 Then install GASTON using pip (will add to pypi soon!)
 
 ```
+conda activate gaston-package
 pip install -e .
 
 ```
