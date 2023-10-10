@@ -8,13 +8,13 @@ GASTON is an interpretable deep learning model for learning the _topography_ of 
 First install conda environment from `environment.yml` file:
 
 ```
+cd GASTON
 conda env create -f environment.yml
 ```
 
 Then install GASTON using pip (will add to pypi soon!)
 
 ```
-cd GASTON
 pip install -e .
 
 ```
