@@ -32,6 +32,7 @@ dependencies = [
     "scipy"
 ]
 
+[project.optional-dependencies]
 docs = [
     "ipython",
     "ipywidgets>=8.0.0",
