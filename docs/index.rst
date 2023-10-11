@@ -25,7 +25,7 @@ GASTON's key applications
 Getting started with GASTON
 ---------------------------
 - Browse :doc:`notebooks/tutorials/index` for a quick start guide to GASTON.
-- Discuss usage and issues on `github `_.
+- Discuss usage and issues on `github`_.
 
 
 .. toctree::
@@ -44,3 +44,5 @@ Getting started with GASTON
     :hidden:
 
     notebooks/tutorials/index
+
+.. _github: https://github.com/raphael-group/GASTON
