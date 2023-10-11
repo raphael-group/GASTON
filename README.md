@@ -3,7 +3,7 @@
 GASTON is an interpretable deep learning model for learning a _topographic map_ of a tissue slice from spatially resolved transcriptomics (SRT) data. Specifically, GASTON models gene expression topography by learning the _isodepth_, a 1-D coordinate that smoothly varies across a tissue slice.
 
 <p align="center">
-<img src="https://github.com/raphael-group/GASTON/blob/main/imgs/gaston_figure-github.png?raw=true" height=700/>
+<img src="https://github.com/raphael-group/GASTON/blob/main/docs/_static/img/gaston_figure-github.png?raw=true" height=700/>
 </p>
 
 The isodepth and topographic map learned by GASTON have many downstream applications including
@@ -13,7 +13,7 @@ The isodepth and topographic map learned by GASTON have many downstream applicat
 * analyzing continuous gradients in the **tumor microenvironment**
 
 <p align="center">
-  <img src="https://github.com/raphael-group/GASTON/blob/main/imgs/gaston_figure-github2.png?raw=true" height=500/>
+  <img src="https://github.com/raphael-group/GASTON/blob/main/docs/_static/img/gaston_figure-github2.png?raw=true" height=500/>
 </p>
 
 ## Installation
