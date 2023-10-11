@@ -32,6 +32,20 @@ dependencies = [
     "scipy"
 ]
 
+docs = [
+    "ipython",
+    "ipywidgets>=8.0.0",
+    "sphinx>=5.3",
+    "sphinx-autodoc-annotation",
+    "sphinx-autodoc-typehints>=1.10.3",
+    "sphinx_rtd_theme",
+    "sphinxcontrib-bibtex>=2.3.0",
+    "sphinxcontrib-spelling>=7.6.2",
+    "nbsphinx>=0.8.1",
+    "myst-nb>=0.17.1",
+    "sphinx_copybutton>=0.5.0",
+]
+
 [project.scripts]
 gaston = "gaston.__main__:main"
 
