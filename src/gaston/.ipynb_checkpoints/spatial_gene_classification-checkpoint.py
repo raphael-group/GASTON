@@ -57,38 +57,3 @@ def get_cont_genes(pw_fit_dict, binning_output, q=0.95, ct_attributable=False, d
                 cont_genes_domain_ct[g].append( (l, 'Other') )
                 
     return cont_genes_domain_ct
-
-
-# EXAMPLE of domain_cts: {0: ['Oligodendrocytes'], 1: ['Granule'], 2: ['Purkinje', 'Bergmann'], 3: ['MLI1', 'MLI2']}
-# if other=True, then get cont genes NOT attributed to cell type
-def get_cell_type_cont_genes(pw_fit_dict, domain_cts, binning_output, perc_threshold=0.6, q=0.95, other=False):
-    
-    # first get SVGs, as well as the domain they vary in
-    cont_genes=set([]) # list of genes
-    cont_genes_domain=[] # list of (genes, domain)
-    gene_labels_idx=binning_output['gene_labels_idx']
-    
-
-    slope_mat_all,_,_,_=pw_fit_dict['all_cell_types']
-    slope_q=np.quantile(np.abs(slope_mat_all), q,0)
-    
-    L=len(slope_q)
-    for i,g in enumerate(gene_labels_idx):
-        for l in range(L):
-            if np.abs(slope_mat_all[i,l]) > slope_q[l]:
-                cont_genes.add(g)
-                cont_genes_domain.append((g,l))
-    
-    cont_genes_ct=set([])
-    cont_genes_domain_ct=[] # dict (gene, domain): ct
-
-    for g,l in cont_genes_domain:
-        for ct in domain_cts[l]:
-            if np.abs( pw_fit_dict[ct][0][gene_labels_idx==g,l] ) / np.abs(pw_fit_dict['all_cell_types'][0][gene_labels_idx==g,l]) > perc_threshold:
-                cont_genes_ct.add(g)
-                cont_genes_ct_domain[(g,l)] = ct
-                
-    cont_genes_other=[g for g in cont_genes if g not in cont_genes_ct]
-    cont_genes_other_domain=[(g,l) for g,l in cont_genes_domain if (g,l) not in cont_genes_ct_domain]
-    
-    return cont_genes_ct,cont_genes_ct_domain, cont_genes_other, cont_genes_other_domain

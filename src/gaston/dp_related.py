@@ -348,24 +348,3 @@ def get_isodepth_labels(model, A, S, num_domains, num_buckets=50, num_pcs_A=None
         c+=1
     
     return gaston_isodepth,gaston_labels
-
-def filter_rescale_boundary(counts_mat, gaston_isodepth, gaston_labels, boundary_locs):
-    
-    counts_mat_subset=counts_mat[:,boundary_locs]
-    gaston_labels_subset=gaston_labels[boundary_locs]
-    gaston_labels_subset -= np.min( np.unique( gaston_labels[boundary_locs] ) )
-    gaston_isodepth_subset=gaston_isodepth[boundary_locs]
-    
-    ####
-    
-    gaston_isodepth_subset0=gaston_isodepth_subset[gaston_labels_subset==0]
-    gaston_isodepth_subset1=gaston_isodepth_subset[gaston_labels_subset==1]
-
-    isodepth_ratio=np.std( gaston_isodepth_subset1 ) / np.std( gaston_isodepth_subset0 )
-
-    gaston_isodepth_subset0_new=((gaston_isodepth_subset0 - np.max(gaston_isodepth_subset0)) * isodepth_ratio) + np.max(gaston_isodepth_subset0)
-
-    gaston_isodepth_subset[gaston_labels_subset==0] = gaston_isodepth_subset0_new
-    
-    return counts_mat_subset, gaston_labels_subset, gaston_isodepth_subset
-    

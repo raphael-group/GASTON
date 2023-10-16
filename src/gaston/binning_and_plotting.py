@@ -10,7 +10,8 @@ from gaston import segmented_fit
 def bin_data(counts_mat, gaston_labels, gaston_isodepth, 
               cell_type_df, gene_labels, num_bins=70, num_bins_per_domain=None,
              idx_kept=None, umi_threshold=500, pc=0, pc_exposure=True, extra_data=[]):
-    
+
+    counts_mat=counts_mat.T # TODO: update code to use N x G matrix instead of G x N matrix
     if idx_kept is None:
         idx_kept=np.where(np.sum(counts_mat,1) > umi_threshold)[0]
     gene_labels_idx=gene_labels[idx_kept]

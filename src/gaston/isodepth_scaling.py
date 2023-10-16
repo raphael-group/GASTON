@@ -13,19 +13,20 @@ import matplotlib.pyplot as plt
 # The isodepth values in domain i are scaled such that the range of isodepth values
 # is the median physical distance between the two domain boundaries, multiplied by scale_factor
 
-# e.g. for 10Xvisium, use scale_factor=100 since distance between adjacent spots is 100 \micron
+# e.g. for 10Xvisium, use scale_factor=100 since distance between adjacent spots is 100 microns
 # for slide-seq, use scale_factor=64/100
 
 # if visualize=True, then also display the lower/upper domain boundaries - this helps with picking q_vals
-def adjust_isodepth(gaston_isodepth, gaston_labels, num_domains, coords_mat, q_vals=None, scale_factor=1, 
-                    visualize=False, figsize=(5,8), num_rows=1,s=5):
+def adjust_isodepth(gaston_isodepth, gaston_labels, coords_mat, q_vals=None, scale_factor=1, 
+                    visualize=False, figsize=(5,8), num_rows=1,s=5, debug=False):
     
     gaston_isodepth2=np.copy(gaston_isodepth - np.min(gaston_isodepth))
+    num_domains=len(np.unique(gaston_labels))
     
     domain_ranges=[] # list of isodepth range values for each domain
 
     if q_vals is None:
-        q_vals=[0.1 for i in range(num_domains)]
+        q_vals=[0.15 for i in range(num_domains)]
 
     if visualize:
         if num_rows is None:
@@ -48,8 +49,8 @@ def adjust_isodepth(gaston_isodepth, gaston_labels, num_domains, coords_mat, q_v
             axs[r,c].scatter(coords_mat[gaston_labels==label,0],coords_mat[gaston_labels==label,1],s=s,c='black')
             axs[r,c].scatter(coords_mat[pts1,0],coords_mat[pts1,1],c='green',s=s)
             axs[r,c].scatter(coords_mat[pts2,0],coords_mat[pts2,1],c='red',s=s)
-    
-    for l in range(4):
+
+    for l in range(num_domains):
         pts_l=np.where(gaston_labels==l)[0]
         
         if l > 0:
@@ -60,7 +61,11 @@ def adjust_isodepth(gaston_isodepth, gaston_labels, num_domains, coords_mat, q_v
         length_l = l_depth_max - l_depth_min
         new_length_l=domain_ranges[l]
         
-        gaston_isodepth2[pts_l]= 1/(length_l) * (gaston_isodepth2[pts_l] * new_length_l - l_depth_min**2 - l_depth_min*new_length_l + l_depth_min*l_depth_max)
-        
+        gaston_isodepth2[pts_l]= 1/(length_l) * (gaston_isodepth2[pts_l] * new_length_l + l_depth_min*(l_depth_max - l_depth_min - new_length_l))
+
+    if debug:
+        for l in range(num_domains):
+            pts_l=np.where(gaston_labels==l)[0]
+            print(l,np.min(gaston_isodepth2[pts_l]), np.max(gaston_isodepth2[pts_l]))
     
     return gaston_isodepth2

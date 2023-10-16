@@ -11,6 +11,7 @@ This section contains specific tutorials to draw topographical maps and extract 
     :maxdepth: 1
 
     cerebellum_tutorial
+    tumor_tutorial
 
 
 Advance analysis of spatial datasets using :mod:`GASTON` (Coming soon)

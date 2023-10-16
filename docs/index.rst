@@ -2,25 +2,28 @@
 GASTON - Mapping the topography of spatial gene expression with interpretable deep learning
 ===========================================================================================
 
-GASTON is an interpretable deep learning model for learning the *topography* of a tissue slice, using spatially resolved transcriptomics (SRT) data. Specifically, GASTON models gene expression topography by learning the *isodepth*, a 1-D coordinate describing tissue geometry (i.e. spatial domains) and continuous gene expression gradients.
+GASTON is an interpretable deep learning model for learning the *gene expression topography* of a tissue slice from spatially resolved transcriptomics (SRT) data. GASTON models gene expression topography by learning the *isodepth*, a 1-D coordinate describing continuous gene expression gradients and tissue geometry (i.e. spatial domains).
 
-.. image:: https://raw.githubusercontent.com/raphael-group/GASTON/main/docs/_static/img/gaston_figure-V7.png
+.. image:: https://raw.githubusercontent.com/raphael-group/GASTON/main/docs/_static/img/gaston_figure-github.png
     :alt: GASTON model architecture
     :width: 400px
     :align: center
     
 
+GASTON's key applications
+-------------------------
+- Learns 1-d coordinate that varies smoothly across tissue slice, providing *topographic map* of gene expression in the tissue slice.
+- Modeling *continuous gradients* of gene expression for individual genes, e.g. gradients of metabolism in cancer
+- Identifying *tissue geometry*, i.e. arrangement of spatial domains
+
+.. image:: https://raw.githubusercontent.com/raphael-group/GASTON/main/docs/_static/img/gaston_figure-github2.png
+    :alt: GASTON model architecture
+    :width: 400px
+    :align: center
+
 Manuscript
 ----------
 Please see our manuscript :cite:`GASTON` for more details.
-
-GASTON's key applications
--------------------------
-- Learns 1-d coordinates that are highly correlated with the spatial coordinates of the tissue slice, and can be used to visualize the topography of gene expression in the tissue slice.
-- Able to continuous gradient of gene expression for each gene, which can be used to identify genes with spatially varying expression patterns.
-- Can be used to identify genes with spatially varying expression patterns, and to identify genes that are spatially co-expressed.
-- Identify spatial domains in the tissue slice akin to celltypes wihch has continuous gene expression gradients.
-- Plot topographical contours for *any* spatial transcriptomics dataset. 
 
 Getting started with GASTON
 ---------------------------

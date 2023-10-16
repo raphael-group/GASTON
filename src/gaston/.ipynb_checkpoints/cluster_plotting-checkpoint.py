@@ -10,9 +10,43 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.utils
 import torch.distributions
+from gaston.dp_related import rotate_by_theta
 
-def plot_clusters(gaston_labels, A, S, fig=None, ax=None, figsize=(5,8), colors=None, color_palette=plt.cm.Dark2, s=20,labels=None,
-                 lgd=False):
+def plot_clusters(gaston_labels, S, fig=None, ax=None, figsize=(5,8), colors=None, color_palette=plt.cm.Dark2, s=20,labels=None,
+                 lgd=False, rotate=None, show_boundary=False, gaston_isodepth=None, boundary_lw=10 ):
+
+    if rotate is not None:
+        S=rotate_by_theta(S,rotate)
+    
+    if fig is None or ax is None:
+        fig,ax=plt.subplots(figsize=figsize)
+
+    if colors is None:
+        colors=np.array([color_palette(i) for i in range(len(np.unique(gaston_labels)))])
+
+    for i,t in enumerate(np.unique(gaston_labels)):
+        pts_t=np.where(gaston_labels==t)[0]
+        if labels is not None:
+            l=labels[i]
+        else:
+            l=i
+        ax.scatter(S[pts_t,0], S[pts_t,1],s=s, color=colors[int(t)], label=l)
+
+    if show_boundary:
+        plt.tricontour(S[:,0], S[:,1], gaston_isodepth, 
+               levels=[np.min(gaston_isodepth[gaston_labels==i]) for i in range(len(np.unique(gaston_labels)))[1:]], 
+               linewidths=boundary_lw, colors='k', linestyles='-')
+    
+    plt.axis('off')
+    if lgd:
+        plt.legend()
+    
+#######
+
+def plot_clusters_restrict(gaston_labels, S, gaston_isodepth, isodepth_min=0, isodepth_max=1, restrict_color='lime', fig=None, ax=None, figsize=(5,8), colors=None, color_palette=plt.cm.Dark2, s=20,labels=None,lgd=False, rotate=None):
+
+    if rotate is not None:
+        S=rotate_by_theta(S,rotate)
     
     if fig is None or ax is None:
         fig,ax=plt.subplots(figsize=figsize)
@@ -30,42 +64,29 @@ def plot_clusters(gaston_labels, A, S, fig=None, ax=None, figsize=(5,8), colors=
     plt.axis('off')
     if lgd:
         plt.legend()
-    
-def plot_clusters_boundary(gaston_labels, A, S, boundary_locs, gaston_isodepth=None, 
-                           fig=None, ax=None, figsize=(5,8), colors=None, 
-                           color_palette=plt.cm.Dark2, color_boundary='lime', alpha_boundary = 1, s=20):
-    
-    if fig is None or ax is None:
-        fig,ax=plt.subplots(figsize=figsize)
-    
-    if colors is None:
-        colors=np.array([color_palette(i) for i in range(len(np.unique(gaston_labels)))])
-    
-    for t in np.unique(gaston_labels):
-        pts_t=np.where(gaston_labels==t)[0]
-        ax.scatter(S[pts_t,0],S[pts_t,1],s=s,c=colors[int(t)], alpha=1)
 
-    ax.scatter(S[boundary_locs,0], S[boundary_locs,1],s=s, alpha=alpha_boundary, c=color_boundary)
-    
-    if gaston_isodepth is not None:
-        ax.tricontour(S[:,0], S[:,1], gaston_isodepth, 
-                      levels=[np.min(gaston_isodepth[gaston_labels==i]) for i in range(5)[1:]], 
-                      linewidths=2, colors='k', linestyles='-')
+    locs=np.array( [i for i in range(len(gaston_isodepth)) if isodepth_min < gaston_isodepth[i] < isodepth_max] )
+    plt.scatter(S[locs,0],S[locs,1],c=restrict_color,alpha=0.5)
 
-    plt.axis('off')
-    plt.tight_layout()
-                           
+#######
 
     
-def plot_isodepth(gaston_isodepth, S, mod, figsize=(5,8), contours=True, contour_levels=4, contour_lw=1, contour_fs=10, colorbar=True,s=20,cbar_fs=10, axis_off=True, streamlines=False, streamlines_lw=1.5):
+def plot_isodepth(gaston_isodepth, S, mod, figsize=(5,8), contours=True, contour_levels=4, contour_lw=1, contour_fs=10, colorbar=True,s=20,cbar_fs=10, axis_off=True, streamlines=False, streamlines_lw=1.5, rotate=None, cmap='coolwarm', norm=None,
+                 arrowsize=2):
+    
+    if rotate is not None:
+        S_rotated=rotate_by_theta(S,rotate)
+    else:
+        S_rotated=S
+    
     fig,ax=plt.subplots(figsize=figsize)
 
-    im1=ax.scatter(S[:,0], S[:,1], c=gaston_isodepth, cmap='Reds', s=s)
+    im1=ax.scatter(S_rotated[:,0], S_rotated[:,1], c=gaston_isodepth, cmap=cmap, s=s, norm=norm)
     if axis_off:
         plt.axis('off')
 
     if contours:
-        CS=ax.tricontour(S[:,0], S[:,1], gaston_isodepth, levels=contour_levels, linewidths=contour_lw, colors='k', linestyles='solid')
+        CS=ax.tricontour(S_rotated[:,0], S_rotated[:,1], gaston_isodepth, levels=contour_levels, linewidths=contour_lw, colors='k', linestyles='solid')
         ax.clabel(CS, CS.levels, inline=True, fontsize=contour_fs)
     if colorbar:
         cbar=plt.colorbar(im1)
@@ -75,6 +96,10 @@ def plot_isodepth(gaston_isodepth, S, mod, figsize=(5,8), contours=True, contour
         G=torch.autograd.grad(outputs=mod.spatial_embedding(x).flatten(),inputs=x, grad_outputs=torch.ones_like(x[:,0]))[0]
         G=G.detach().numpy()
         G=-1*G
+        if rotate is not None:
+            G_rotated=rotate_by_theta(G,rotate)
+        else:
+            G_rotated=G
         
         # CODE FROM scVelo
         smooth=None
@@ -83,8 +108,8 @@ def plot_isodepth(gaston_isodepth, S, mod, figsize=(5,8), contours=True, contour
         cutoff_perc=0
         
         X_grid, V_grid = compute_velocity_on_grid(
-                    X_emb=S,
-                    V_emb=G,
+                    X_emb=S_rotated,
+                    V_emb=G_rotated,
                     density=1,
                     smooth=smooth,
                     min_mass=min_mass,
@@ -104,7 +129,7 @@ def plot_isodepth(gaston_isodepth, S, mod, figsize=(5,8), contours=True, contour
                 "density": density,
                 "zorder": 3,
                 "color": "k",
-                "arrowsize": 2,
+                "arrowsize": arrowsize,
                 "arrowstyle": "-|>",
                 "maxlength": 1000,
                 "integration_direction": "both",

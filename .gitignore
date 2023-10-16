@@ -1,3 +1,8 @@
+# cerebellum counts matrix
+docs/notebooks/tutorials/cerebellum_data/cerebellum_counts_mat.npy
+docs/notebooks/tutorials/colorectal_tumor_data/counts_mat.npy
+docs/notebooks/tutorials/colorectal_tumor_data/filtered_feature_bc_matrix.h5
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

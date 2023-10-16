@@ -8,7 +8,7 @@ from sklearn.preprocessing import normalize
 ######################
 
 # INPUTS:
-# counts_mat: G x N matrix of counts
+# counts_mat: N x G matrix of counts
 # gaston_labels, gaston_isodepth: N x 1 array with labels/isodepth for each spot (labels=0, ..., L-1)
 # cell_type_df: N x C dataframe, rows are spots, columns are cell types, entries are cell type proportion in spot
 # ct_list: list of cell types to compute piecewise linear fits for
@@ -31,7 +31,8 @@ from sklearn.preprocessing import normalize
 def pw_linear_fit(counts_mat, gaston_labels, gaston_isodepth, cell_type_df, ct_list,
                   umi_threshold=500, idx_kept=None, pc=0, pc_exposure=True, t=0.1,
                   isodepth_mult_factor=1, reg=0, zero_fit_threshold=0):
-    
+
+    counts_mat=counts_mat.T # TODO: update code to use N x G matrix instead of G x N matrix
     if idx_kept is None:
         idx_kept=np.where(np.sum(counts_mat,1) > umi_threshold)[0]
     pseudo_counts_mat, exposures = add_pc(counts_mat, pc=pc)
