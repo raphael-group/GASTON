@@ -55,3 +55,23 @@ Olfactory bulb/MERFISH tutorials coming soon!
 * squidpy
 
 See full list in `environment.yml` file.
+
+## Citations
+
+The GASTON manuscript is available on [bioRxiv](https://www.biorxiv.org/content/10.1101/2023.10.10.561757v1). If you use GASTON for your work, please cite our paper.
+
+```
+@article {Chitra2023,
+	author = {Uthsav Chitra and Brian J. Arnold and Hirak Sarkar and Cong Ma and Sereno Lopez-Darwin and Kohei Sanno and Benjamin J. Raphael},
+	title = {Mapping the topography of spatial gene expression with interpretable deep learning},
+	elocation-id = {2023.10.10.561757},
+	year = {2023},
+	doi = {10.1101/2023.10.10.561757},
+	publisher = {Cold Spring Harbor Laboratory},
+	URL = {https://www.biorxiv.org/content/early/2023/10/13/2023.10.10.561757},
+	eprint = {https://www.biorxiv.org/content/early/2023/10/13/2023.10.10.561757.full.pdf},
+	journal = {bioRxiv}
+}
+
+
+```
