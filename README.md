@@ -37,7 +37,7 @@ We will add GASTON to PyPI and Bioconda soon!
 
 Check out our [readthedocs](https://gaston.readthedocs.io/en/latest/index.html), which includes tutorials for the cerebellum and tumor analyses. GASTON requires an NxG gene expression matrix (e.g. UMI counts) and an Nx2 spatial location matrix, which can be provided or read from Space Ranger output.
 
- Note that due to Github size constraints, you have to download the counts matrices for both analyses from [Google Drive](https://drive.google.com/drive/folders/1GiibZwhpzlur8C1hNHa1g7I4jsc1Gmn7?usp=sharing). 
+The data to run the tutorials is located in `docs/notebooks/tutorials/`. Note that due to Github size constraints, you have to download the counts matrices for both analyses from [Google Drive](https://drive.google.com/drive/folders/1GiibZwhpzlur8C1hNHa1g7I4jsc1Gmn7?usp=sharing). 
 
 Olfactory bulb/MERFISH tutorials coming soon!
 
