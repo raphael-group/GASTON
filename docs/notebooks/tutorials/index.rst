@@ -11,6 +11,10 @@ This section contains specific tutorials to draw topographical maps and extract 
     :maxdepth: 1
 
     cerebellum_tutorial
+
+.. toctree::
+    :maxdepth: 1
+
     tumor_tutorial
 
 
