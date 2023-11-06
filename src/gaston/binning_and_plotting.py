@@ -9,7 +9,7 @@ from gaston import segmented_fit
 # counts mat has to be of shape G x N
 def bin_data(counts_mat, gaston_labels, gaston_isodepth, 
               cell_type_df, gene_labels, num_bins=70, num_bins_per_domain=None,
-             idx_kept=None, umi_threshold=500, pc=0, pc_exposure=True, extra_data=[]):
+             idx_kept=None, umi_threshold=500, pc=0, pc_exposure=True, extra_data=[], remove_unused_bins=True):
 
     counts_mat=counts_mat.T # TODO: update code to use N x G matrix instead of G x N matrix
     if idx_kept is None:
@@ -55,7 +55,7 @@ def bin_data(counts_mat, gaston_labels, gaston_isodepth,
                 bins_l=bins_l[1:]
             bins=np.concatenate((bins, bins_l))
     else:
-        isodepth_min, isodepth_max=np.floor(np.min(gaston_isodepth))-0.5, np.ceil(np.max(gaston_isodepth))+0.5
+        isodepth_min, isodepth_max=np.floor(np.min(gaston_isodepth))-0.01, np.ceil(np.max(gaston_isodepth))+0.01
         bins=np.linspace(isodepth_min, isodepth_max, num=num_bins+1)
 
     unique_binned_isodepths=np.array( [0.5*(bins[i]+bins[i+1]) for i in range(len(bins)-1)] )
@@ -63,7 +63,8 @@ def bin_data(counts_mat, gaston_labels, gaston_isodepth,
     binned_isodepths=unique_binned_isodepths[binned_isodepth_inds]
     
     # remove bins not used
-    unique_binned_isodepths=np.delete(unique_binned_isodepths,
+    if remove_unused_bins:
+        unique_binned_isodepths=np.delete(unique_binned_isodepths,
                                    [np.where(unique_binned_isodepths==t)[0][0] for t in unique_binned_isodepths if t not in binned_isodepths])
 
     N_1d=len(unique_binned_isodepths)
@@ -86,7 +87,10 @@ def bin_data(counts_mat, gaston_labels, gaston_isodepth,
         binned_exposure[ind]=np.sum(exposure[bin_pts])
         if pc>0:
             to_subtract[ind]=np.log(10**6 * (len(bin_pts)/np.sum(exposure[bin_pts])))
-        binned_labels[ind]= int(mode( gaston_labels[bin_pts],keepdims=False).mode)
+        if len(bin_pts)>0:
+            binned_labels[ind]= int(mode( gaston_labels[bin_pts],keepdims=False).mode)
+        else:
+            binned_labels[ind]=binned_labels[ind-1]
         binned_cell_type_mat[ind,:] = np.sum( cell_type_mat[bin_pts,:], axis=0)
         binned_number_spots[ind]=len(bin_pts)
         map_1d_bins_to_2d[b]=bin_pts
@@ -147,7 +151,7 @@ def bin_data(counts_mat, gaston_labels, gaston_isodepth,
 def plot_gene_pwlinear(gene_name, pw_fit_dict, gaston_labels, gaston_isodepth, binning_output,
                        cell_type_list=None, ct_colors=None, spot_threshold=0.25, pt_size=10, 
                        colors=None, linear_fit=True, lw=2, domain_list=None, ticksize=20, figsize=(7,3),
-                      offset=1, xticks=None, yticks=None, alpha=1, domain_boundary_plotting=False, 
+                      offset=1000000, xticks=None, yticks=None, alpha=1, domain_boundary_plotting=False, 
                       save=False, save_dir="./", variable_spot_size=False, show_lgd=False,
                       lgd_bbox=(1.05,1)):
     

@@ -32,7 +32,7 @@ def adjust_isodepth(gaston_isodepth, gaston_labels, coords_mat, q_vals=None, sca
         if num_rows is None:
             num_rows=1
         num_cols=int(np.ceil(num_domains/num_rows))
-        fig,axs=plt.subplots(num_rows, num_cols, figsize=figsize)
+        fig,axs=plt.subplots(num_rows, num_cols, figsize=figsize, squeeze=False)
 
     for label in range(num_domains):
         q1=q_vals[label]
@@ -44,8 +44,8 @@ def adjust_isodepth(gaston_isodepth, gaston_labels, coords_mat, q_vals=None, sca
         domain_ranges.append(np.median(np.min(zzz,1)) * scale_factor)
 
         if visualize:
-            r=int(label/num_rows)
-            c=label % num_rows
+            r=int(label/num_cols)
+            c=label % num_cols
             axs[r,c].scatter(coords_mat[gaston_labels==label,0],coords_mat[gaston_labels==label,1],s=s,c='black')
             axs[r,c].scatter(coords_mat[pts1,0],coords_mat[pts1,1],c='green',s=s)
             axs[r,c].scatter(coords_mat[pts2,0],coords_mat[pts2,1],c='red',s=s)

@@ -114,7 +114,6 @@ def plot_isodepth(gaston_isodepth, S, mod, figsize=(5,8), contours=True, contour
                     smooth=smooth,
                     min_mass=min_mass,
                     n_neighbors=n_neighbors,
-                    autoscale=False,
                     adjust_for_stream=True,
                     cutoff_perc=cutoff_perc,
                 )
@@ -152,7 +151,6 @@ def compute_velocity_on_grid(
     smooth=None,
     n_neighbors=None,
     min_mass=None,
-    autoscale=True,
     adjust_for_stream=False,
     cutoff_perc=None,
 ):
@@ -214,8 +212,5 @@ def compute_velocity_on_grid(
     else:
         min_mass *= np.percentile(p_mass, 99) / 100
         X_grid, V_grid = X_grid[p_mass > min_mass], V_grid[p_mass > min_mass]
-
-        if autoscale:
-            V_grid /= 3 * quiver_autoscale(X_grid, V_grid)
 
     return X_grid, V_grid
