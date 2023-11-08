@@ -151,7 +151,7 @@ def bin_data(counts_mat, gaston_labels, gaston_isodepth,
 def plot_gene_pwlinear(gene_name, pw_fit_dict, gaston_labels, gaston_isodepth, binning_output,
                        cell_type_list=None, ct_colors=None, spot_threshold=0.25, pt_size=10, 
                        colors=None, linear_fit=True, lw=2, domain_list=None, ticksize=20, figsize=(7,3),
-                      offset=1000000, xticks=None, yticks=None, alpha=1, domain_boundary_plotting=False, 
+                      offset=10**6, xticks=None, yticks=None, alpha=1, domain_boundary_plotting=False, 
                       save=False, save_dir="./", variable_spot_size=False, show_lgd=False,
                       lgd_bbox=(1.05,1)):
     
@@ -264,3 +264,34 @@ def plot_gene_pwlinear(gene_name, pw_fit_dict, gaston_labels, gaston_isodepth, b
         os.makedirs(save_dir, exist_ok=True)
         plt.savefig(f"{save_dir}/{gene_name}_pwlinear.pdf", bbox_inches="tight")
         plt.close()
+
+def get_gene_plot_values(gene_name, binning_output, offset=10**6):
+    gene_labels_idx=binning_output['gene_labels_idx']
+    if gene_name in gene_labels_idx:
+        gene=np.where(gene_labels_idx==gene_name)[0]
+    else:
+        umi_threshold=binning_output['umi_threshold']
+        raise ValueError(f'gene does not have UMI count above threshold {umi_threshold}')
+    
+    unique_binned_isodepths=binning_output['unique_binned_isodepths']
+    binned_labels=binning_output['binned_labels']
+    
+    binned_count_list=binning_output['binned_count']
+    binned_exposure_list=binning_output['binned_exposure']
+
+    domain_list=range(len(binning_output['segs']))
+
+    values = []
+        
+    for seg in domain_list:
+        for i in range(len(binned_count_list)):
+            pts_seg=np.where(binned_labels==seg)[0]
+            binned_count=binned_count_list[i]
+            binned_exposure=binned_exposure_list[i]
+                
+            xax=unique_binned_isodepths[pts_seg]
+            yax=np.log( (binned_count[gene,pts_seg] / binned_exposure[pts_seg]) * offset + 1)
+
+            values.append(np.column_stack((xax, yax)))
+    
+    return np.vstack(values)
