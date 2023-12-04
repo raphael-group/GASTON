@@ -72,6 +72,7 @@ The GASTON manuscript is available on [bioRxiv](https://www.biorxiv.org/content/
 	eprint = {https://www.biorxiv.org/content/early/2023/10/13/2023.10.10.561757.full.pdf},
 	journal = {bioRxiv}
 }
-
-
 ```
+
+## Support
+For questions or comments, please file a Github issue and/or email Uthsav Chitra (uchitra@princeton.edu).
