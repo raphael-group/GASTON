@@ -72,7 +72,7 @@ def plot_clusters_restrict(gaston_labels, S, gaston_isodepth, isodepth_min=0, is
 
     
 def plot_isodepth(gaston_isodepth, S, mod, figsize=(5,8), contours=True, contour_levels=4, contour_lw=1, contour_fs=10, colorbar=True,s=20,cbar_fs=10, axis_off=True, streamlines=False, streamlines_lw=1.5, rotate=None, cmap='coolwarm', norm=None,
-                 arrowsize=2):
+                 arrowsize=2, neg_gradient=False):
     
     if rotate is not None:
         S_rotated=rotate_by_theta(S,rotate)
@@ -95,7 +95,8 @@ def plot_isodepth(gaston_isodepth, S, mod, figsize=(5,8), contours=True, contour
         x=torch.tensor(S,requires_grad=True).float()
         G=torch.autograd.grad(outputs=mod.spatial_embedding(x).flatten(),inputs=x, grad_outputs=torch.ones_like(x[:,0]))[0]
         G=G.detach().numpy()
-        G=-1*G
+        if neg_gradient:
+            G=-1*G
         if rotate is not None:
             G_rotated=rotate_by_theta(G,rotate)
         else:
@@ -114,7 +115,6 @@ def plot_isodepth(gaston_isodepth, S, mod, figsize=(5,8), contours=True, contour
                     smooth=smooth,
                     min_mass=min_mass,
                     n_neighbors=n_neighbors,
-                    autoscale=False,
                     adjust_for_stream=True,
                     cutoff_perc=cutoff_perc,
                 )
@@ -152,7 +152,6 @@ def compute_velocity_on_grid(
     smooth=None,
     n_neighbors=None,
     min_mass=None,
-    autoscale=True,
     adjust_for_stream=False,
     cutoff_perc=None,
 ):
@@ -214,8 +213,5 @@ def compute_velocity_on_grid(
     else:
         min_mass *= np.percentile(p_mass, 99) / 100
         X_grid, V_grid = X_grid[p_mass > min_mass], V_grid[p_mass > min_mass]
-
-        if autoscale:
-            V_grid /= 3 * quiver_autoscale(X_grid, V_grid)
 
     return X_grid, V_grid

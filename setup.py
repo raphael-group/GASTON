@@ -18,7 +18,7 @@ setuptools.setup(
         'numpy',
         'pandas',
         'seaborn',
-        'scikit-learn'
+        'scikit-learn',
         'tqdm',
         'scipy',
         'jupyterlab',
