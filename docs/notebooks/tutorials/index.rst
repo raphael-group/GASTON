@@ -17,6 +17,11 @@ This section contains specific tutorials to draw topographical maps and extract 
 
     tumor_tutorial
 
+.. toctree::
+    :maxdepth: 1
+
+    motor_cortex_tutorial
+
 
 Advance analysis of spatial datasets using :mod:`GASTON` (Coming soon)
 ---------------------------------------------------------------------
