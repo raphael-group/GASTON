@@ -31,6 +31,8 @@ dependencies = [
     "tqdm",
     "scipy"
 ]
+license = {text = "BSD"}
+keywords = ["spatial transcriptomics", "neural network", "tissue layer"]
 
 [project.optional-dependencies]
 docs = [
