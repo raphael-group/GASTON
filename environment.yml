@@ -284,6 +284,7 @@ dependencies:
       - imageio==2.31.5
       - inflect==7.0.0
       - jmespath==1.0.1
+      - kneed==0.8.5
       - lazy-loader==0.3
       - leidenalg==0.10.1
       - locket==1.0.0
