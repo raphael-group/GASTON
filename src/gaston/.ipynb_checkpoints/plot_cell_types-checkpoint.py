@@ -6,6 +6,7 @@ from matplotlib.collections import LineCollection
 
 from gaston import binning_and_plotting
 
+from matplotlib.colors import ListedColormap
 import seaborn as sns
 
 # domain_boundary_label='domain boundaries \n from expression or \n cell type proportion'
@@ -16,6 +17,18 @@ domain_boundary_label='Domain boundaries'
 # example of ct_pseudocounts: {3: 1} -- ie domain 4 needs CT pseudocount of 1
 
 ############################################################################################################
+
+def domain_cts_svg(cell_type_df, gaston_labels, gaston_isodepth, domain_ct_threshold=0.7,
+                  num_bins=60, num_bins_per_domain=[10,16,7,17]):
+    N=len(gaston_labels)
+    # need dummy counts mat and dummy gene_labels to create binning_output
+    binning_output=binning_and_plotting.bin_data(np.ones((N,10)).T, gaston_labels, gaston_isodepth, 
+                         cell_type_df, np.array(['test' for i in range(10)]), num_bins=num_bins, num_bins_per_domain=num_bins_per_domain)
+    ct_dict=get_domain_cts(binning_output, domain_ct_threshold) # {0: [list of CTs], 1: [list of CTs], ...}
+    ct_list=[]
+    for d in ct_dict:
+        ct_list+=list(ct_dict[d])
+    return np.unique(ct_list)
 
 def get_domain_cts(binning_output, domain_ct_threshold, exclude_ct=[]):
     domain_ct_markers={}
@@ -64,16 +77,18 @@ def get_domain_cts(binning_output, domain_ct_threshold, exclude_ct=[]):
 # lgd_bbox: where to place legend
 def plot_ct_props(cell_type_df, gaston_labels, gaston_isodepth, 
                   num_bins=60, num_bins_per_domain=[10,16,7,17],
-                  ct_list=None, ct_colors=None, color_palette=plt.cm.tab20, 
+                  ct_list=None, ct_colors=None, color_palette=None, 
                    ct_pseudocounts=None, linewidth=8, figsize=(15,6),
                    domain_ct_threshold=0.6, ticksize=25, domain_boundary_label=domain_boundary_label, 
                    exclude_ct=[],width1=8, width2=4,
-                  lgd_width=4, include_lgd=True, lgd_fontsize=25, lgd_bbox=(1.75,1), lgd_frameon=True):
+                  lgd_width=4, include_lgd=True, lgd_fontsize=25, lgd_bbox=(1.75,1), lgd_frameon=True,
+                 return_ct_raw=False):
 
     N=len(gaston_labels)
     # need dummy counts mat and dummy gene_labels to create binning_output
-    binning_output=binning_and_plotting.bin_data(np.ones((10,N)).T, gaston_labels, gaston_isodepth, 
+    binning_output=binning_and_plotting.bin_data(np.ones((N,10)).T, gaston_labels, gaston_isodepth, 
                          cell_type_df, np.array(['test' for i in range(10)]), num_bins=num_bins, num_bins_per_domain=num_bins_per_domain)
+    # print(binning_output)
     unique_binned_isodepths=binning_output['unique_binned_isodepths']
     binned_labels=binning_output['binned_labels']
     ct_count_mat=binning_output['binned_cell_type_mat'].T # len(unique_cell_types) x binned_labels
@@ -96,10 +111,15 @@ def plot_ct_props(cell_type_df, gaston_labels, gaston_isodepth,
         ct_list=[]
         for v in domain_ct_markers.values():
             ct_list += list(v)
+        ct_list=list(set(ct_list))
         ct_inds=np.array([np.where(cell_type_names==ct)[0][0] for ct in ct_list])
     else:
         ct_inds=np.array([np.where(cell_type_names==i)[0][0] for i in ct_list if i not in exclude_ct])
         ct_list=cell_type_names[ct_inds]
+
+    if color_palette is None:
+        l=len(ct_list)
+        color_palette=ListedColormap([sns.color_palette("Spectral", as_cmap=True)(i/l) for i in range(l)])
     
     pc_mat=np.zeros( ct_count_mat.shape )
     if ct_pseudocounts is not None:
@@ -109,11 +129,13 @@ def plot_ct_props(cell_type_df, gaston_labels, gaston_isodepth,
 
     ct_count_mat=(ct_count_mat+pc_mat)[ct_inds]
     ct_count_prop=normalize(ct_count_mat,axis=0,norm='l1')
+    print(ct_count_prop.shape, ct_list)
 
     fig,ax=plt.subplots(figsize=figsize)
         
     if ct_colors is None:
-        ct_colors_list=[color_palette(i) for i in range(20)]
+        ct_colors_list=[color_palette(i) for i in range(len(ct_list))]
+    # print(len(ct_colors_list))
     c=0
     
     for i,ct in enumerate(ct_list):
@@ -159,3 +181,6 @@ def plot_ct_props(cell_type_df, gaston_labels, gaston_isodepth,
     
     plt.ylim((0, 1.05))
     sns.despine()
+
+    if return_ct_raw:
+        return ct_list, ct_count_prop, unique_binned_isodepths

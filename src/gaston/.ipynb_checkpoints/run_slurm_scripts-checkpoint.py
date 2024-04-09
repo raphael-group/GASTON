@@ -6,13 +6,13 @@ from subprocess import Popen,PIPE
 
 def train_NN_parallel(path_to_coords, path_to_glmpca, hidden_spatial, hidden_expression, 
                       output_dir, conda_environment, path_to_conda_folder,
-                      epochs=10000, checkpoint=500, optimizer='adam', num_seeds=30, partition=None):
+                      epochs=10000, checkpoint=500, optimizer='adam', num_seeds=30, partition=None,
+                     time="0-01:00:00"):
 
     hidden_spatial=' '.join(map(str, hidden_spatial))
     hidden_expression=' '.join(map(str, hidden_expression))
     
-    tasks = 1                                                   
-    time = "0-01:00:00"
+    tasks = 1
     mem_per_cpu = 5000
     processes = 1
     for seed in range(num_seeds):

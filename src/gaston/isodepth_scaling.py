@@ -17,11 +17,13 @@ import matplotlib.pyplot as plt
 # for slide-seq, use scale_factor=64/100
 
 # if visualize=True, then also display the lower/upper domain boundaries - this helps with picking q_vals
-def adjust_isodepth(gaston_isodepth, gaston_labels, coords_mat, q_vals=None, scale_factor=1, 
-                    visualize=False, figsize=(5,8), num_rows=1,s=5, debug=False):
-    
+def adjust_isodepth(gaston_isodepth, gaston_labels, coords_mat, num_domains=None, q_vals=None, scale_factor=1, 
+                    visualize=False, figsize=(5,8), num_rows=1,s=5, return_scaling_factors=False):
+
+    L=len(np.unique(gaston_labels))
     gaston_isodepth2=np.copy(gaston_isodepth - np.min(gaston_isodepth))
-    num_domains=len(np.unique(gaston_labels))
+    if num_domains is None:
+        num_domains=len(np.unique(gaston_labels))
     
     domain_ranges=[] # list of isodepth range values for each domain
 
@@ -63,9 +65,12 @@ def adjust_isodepth(gaston_isodepth, gaston_labels, coords_mat, q_vals=None, sca
         
         gaston_isodepth2[pts_l]= 1/(length_l) * (gaston_isodepth2[pts_l] * new_length_l + l_depth_min*(l_depth_max - l_depth_min - new_length_l))
 
-    if debug:
-        for l in range(num_domains):
+    if return_scaling_factors:
+        scale_list=[]
+        for l in range(L):
             pts_l=np.where(gaston_labels==l)[0]
-            print(l,np.min(gaston_isodepth2[pts_l]), np.max(gaston_isodepth2[pts_l]))
+            s=(np.max(gaston_isodepth2[pts_l]) - np.min(gaston_isodepth2[pts_l])) / (np.max(gaston_isodepth[pts_l]) - np.min(gaston_isodepth[pts_l]))
+            scale_list.append(s)
+        return gaston_isodepth2, scale_list
     
     return gaston_isodepth2

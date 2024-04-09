@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
 
 from sklearn.preprocessing import normalize
 
@@ -13,10 +14,14 @@ import torch.distributions
 from gaston.dp_related import rotate_by_theta
 
 def plot_clusters(gaston_labels, S, fig=None, ax=None, figsize=(5,8), colors=None, color_palette=plt.cm.Dark2, s=20,labels=None,
-                 lgd=False, rotate=None, show_boundary=False, gaston_isodepth=None, boundary_lw=10 ):
+                 lgd=False, rotate=None, show_boundary=False, gaston_isodepth=None, boundary_lw=10,bbox_to_anchor=None,
+                 linear_transform=None):
 
     if rotate is not None:
         S=rotate_by_theta(S,rotate)
+    elif linear_transform is not None:
+        S=(linear_transform @ S.T).T
+    
     
     if fig is None or ax is None:
         fig,ax=plt.subplots(figsize=figsize)
@@ -39,7 +44,7 @@ def plot_clusters(gaston_labels, S, fig=None, ax=None, figsize=(5,8), colors=Non
     
     plt.axis('off')
     if lgd:
-        plt.legend()
+        plt.legend(bbox_to_anchor=bbox_to_anchor)
     
 #######
 
@@ -72,10 +77,12 @@ def plot_clusters_restrict(gaston_labels, S, gaston_isodepth, isodepth_min=0, is
 
     
 def plot_isodepth(gaston_isodepth, S, mod, figsize=(5,8), contours=True, contour_levels=4, contour_lw=1, contour_fs=10, colorbar=True,s=20,cbar_fs=10, axis_off=True, streamlines=False, streamlines_lw=1.5, rotate=None, cmap='coolwarm', norm=None,
-                 arrowsize=2, neg_gradient=False):
+                 arrowsize=2, neg_gradient=False, scaling_factors=None, gaston_labels_for_scaling=None, linear_transform=None):
     
     if rotate is not None:
         S_rotated=rotate_by_theta(S,rotate)
+    elif linear_transform is not None:
+        S_rotated=(linear_transform @ S.T).T
     else:
         S_rotated=S
     
@@ -97,8 +104,16 @@ def plot_isodepth(gaston_isodepth, S, mod, figsize=(5,8), contours=True, contour
         G=G.detach().numpy()
         if neg_gradient:
             G=-1*G
+
+        if scaling_factors is not None:
+            L=len(np.unique(gaston_labels_for_scaling))
+            for l in range(L):
+                G[gaston_labels_for_scaling==l,:] = scaling_factors[l] * G[gaston_labels_for_scaling==l,:]
+        
         if rotate is not None:
             G_rotated=rotate_by_theta(G,rotate)
+        elif linear_transform is not None:
+            G_rotated=(linear_transform @ G.T).T
         else:
             G_rotated=G
         

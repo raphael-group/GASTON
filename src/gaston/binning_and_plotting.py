@@ -5,18 +5,18 @@ import seaborn as sns
 import os
 
 from gaston import segmented_fit
+from gaston.dp_related import rotate_by_theta
 
 # counts mat has to be of shape G x N
 def bin_data(counts_mat, gaston_labels, gaston_isodepth, 
               cell_type_df, gene_labels, num_bins=70, num_bins_per_domain=None,
-             idx_kept=None, umi_threshold=500, pc=0, pc_exposure=True, extra_data=[], remove_unused_bins=False, min_cells_per_bin=1):
-
-    counts_mat=counts_mat.T # TODO: update code to use N x G matrix instead of G x N matrix
+             idx_kept=None, umi_threshold=500, pc=0, pc_exposure=True, extra_data=[]):
+    
     if idx_kept is None:
         idx_kept=np.where(np.sum(counts_mat,1) > umi_threshold)[0]
     gene_labels_idx=gene_labels[idx_kept]
     
-    pseudo_counts_mat, exposure = segmented_fit.add_pc(counts_mat, pc=pc, pc_exposure=pc_exposure)
+    pseudo_counts_mat, exposure = segmented_fit.add_pc(counts_mat, pc=pc,pc_exposure=pc_exposure)
     
     cmat=pseudo_counts_mat[idx_kept,:]
     
@@ -55,7 +55,7 @@ def bin_data(counts_mat, gaston_labels, gaston_isodepth,
                 bins_l=bins_l[1:]
             bins=np.concatenate((bins, bins_l))
     else:
-        isodepth_min, isodepth_max=np.floor(np.min(gaston_isodepth))-0.01, np.ceil(np.max(gaston_isodepth))+0.01
+        isodepth_min, isodepth_max=np.floor(np.min(gaston_isodepth))-0.5, np.ceil(np.max(gaston_isodepth))+0.5
         bins=np.linspace(isodepth_min, isodepth_max, num=num_bins+1)
 
     unique_binned_isodepths=np.array( [0.5*(bins[i]+bins[i+1]) for i in range(len(bins)-1)] )
@@ -63,9 +63,8 @@ def bin_data(counts_mat, gaston_labels, gaston_isodepth,
     binned_isodepths=unique_binned_isodepths[binned_isodepth_inds]
     
     # remove bins not used
-    if remove_unused_bins:
-        unique_binned_isodepths=np.delete(unique_binned_isodepths,
-                                   [np.where(unique_binned_isodepths==t)[0][0] for t in unique_binned_isodepths if (binned_isodepths==t).sum() < min_cells_per_bin])
+    unique_binned_isodepths=np.delete(unique_binned_isodepths,
+                                   [np.where(unique_binned_isodepths==t)[0][0] for t in unique_binned_isodepths if t not in binned_isodepths])
 
     N_1d=len(unique_binned_isodepths)
     binned_count=np.zeros( (G, N_1d) )
@@ -82,21 +81,19 @@ def bin_data(counts_mat, gaston_labels, gaston_isodepth,
     map_1d_bins_to_2d={} # map b -> [list of cells in bin b]
     for ind, b in enumerate(unique_binned_isodepths):
         bin_pts=np.where(binned_isodepths==b)[0]
+
         binned_count[:,ind]=np.sum(cmat[:,bin_pts],axis=1)
         binned_exposure[ind]=np.sum(exposure[bin_pts])
         if pc>0:
             to_subtract[ind]=np.log(10**6 * (len(bin_pts)/np.sum(exposure[bin_pts])))
-        if len(bin_pts)>0:
-            binned_labels[ind]= int(mode(gaston_labels[bin_pts],keepdims=False).mode)
-        else:
-            binned_labels[ind]=binned_labels[ind-1]
+        binned_labels[ind]= int(mode( gaston_labels[bin_pts],keepdims=False).mode)
         binned_cell_type_mat[ind,:] = np.sum( cell_type_mat[bin_pts,:], axis=0)
         binned_number_spots[ind]=len(bin_pts)
         map_1d_bins_to_2d[b]=bin_pts
 
         for i, eb in enumerate(extra_data):
             binned_extra_data[i][ind]=np.mean(extra_data[i][bin_pts])
-
+                
         for ct_ind, ct in enumerate(cell_type_names):
             
             ct_spots=np.where(cell_type_mat[:,ct_ind] > 0)[0]
@@ -314,8 +311,10 @@ def get_gene_plot_values(gene_name, binning_output, offset=10**6):
 # NxG counts matrix
 # plot raw expression values of gene
 def plot_gene_raw(gene_name, gene_labels, counts_mat, coords_mat, 
-                       offset=10**6, figsize=(6,6), colorbar=True, vmax=None, vmin=None):
-    
+                       offset=10**6, figsize=(6,6), colorbar=True, vmax=None, vmin=None, s=16, rotate=None):
+
+    if rotate is not None:
+        coords_mat=rotate_by_theta(coords_mat,rotate)
     gene_idx=np.where(gene_labels==gene_name)[0]
 
     exposure = np.sum(counts_mat, axis=1, keepdims=False)
@@ -328,7 +327,7 @@ def plot_gene_raw(gene_name, gene_labels, counts_mat, coords_mat,
     im1 = ax.scatter(coords_mat[:, 0], 
         coords_mat[:, 1],
         c = expression,
-        cmap = 'RdPu', s=16, vmax=vmax, vmin=vmin)
+        cmap = 'RdPu', s=s, vmax=vmax, vmin=vmin)
 
     if colorbar:
         cbar=plt.colorbar(im1)
@@ -339,7 +338,12 @@ def plot_gene_raw(gene_name, gene_labels, counts_mat, coords_mat,
 # plot piecewise linear gene function learned by GASTON
 def plot_gene_function(gene_name, coords_mat, pw_fit_dict, gaston_labels, gaston_isodepth, 
                        binning_output, offset=10**6, figsize=(6,6), colorbar=True, 
-                       contours=False, contour_levels=4, contour_lw=1, contour_fs=10):
+                       contours=False, contour_levels=4, contour_lw=1, contour_fs=10, s=16,
+                      rotate=None):
+
+    if rotate is not None:
+        coords_mat=rotate_by_theta(coords_mat,rotate)
+    
     gene_labels_idx=binning_output['gene_labels_idx']
     if gene_name in gene_labels_idx:
         gene=np.where(gene_labels_idx==gene_name)[0]
@@ -363,7 +367,7 @@ def plot_gene_function(gene_name, coords_mat, pw_fit_dict, gaston_labels, gaston
     im1 = ax.scatter(coords_mat[:, 0], 
         coords_mat[:, 1],
         c = outputs,
-        cmap = 'RdPu', s=16)
+        cmap = 'RdPu', s=s)
 
 
     if contours:
