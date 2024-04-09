@@ -1,11 +1,10 @@
 Tutorial
 ========
 
-This section contains various tutorials showcasing the use of GASTON on different spatial datasets
+We present tutorials demonstrating GASTON on several different spatial datasets (brain, tumor) and technologies (Slide-SeqV2, Visium, MERFISH, Xenium).
 
 Analysis of spatial datasets using :mod:`GASTON`
 -------------------------------------------------
-This section contains specific tutorials to draw topographical maps and extract useful information from them.
 
 .. toctree::
     :maxdepth: 1
@@ -22,10 +21,7 @@ This section contains specific tutorials to draw topographical maps and extract 
 
     motor_cortex_tutorial
 
+.. toctree::
+    :maxdepth: 1
 
-Advance analysis of spatial datasets using :mod:`GASTON` (Coming soon)
----------------------------------------------------------------------
-This section contains basic functionality of GASTON on any spatial dataset presented as adata
-    - loading spatial data 
-    - visualizing gradients
-    - drawing contours 
+    xenium_brca_tutorial
