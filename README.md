@@ -31,30 +31,36 @@ conda activate gaston-package
 pip install -e .
 ```
 
-We will add GASTON to PyPI and Bioconda soon!
+Installation should take <10 minutes. We will add GASTON to PyPI and Bioconda soon! 
 
 ## Getting started
 
-Check out our [readthedocs](https://gaston.readthedocs.io/en/latest/index.html), which includes tutorials for the cerebellum and tumor analyses. GASTON requires an NxG gene expression matrix (e.g. UMI counts) and an Nx2 spatial location matrix, which can be provided or read from Space Ranger output.
+Check out our [readthedocs](https://gaston.readthedocs.io/en/latest/index.html), which includes tutorials for four analyses: 
+* mouse cerebellum (Slide-SeqV2)
+* human colorectal tumor (10x Visium)
+* human breast cancer tumor (10x Xenium)
+* mouse cortex (MERFISH).
+
+Training GASTON by following the tutorials should take <1 hour.
+
+GASTON requires an NxG gene expression matrix (e.g. UMI counts) and an Nx2 spatial location matrix, which can be provided or read from Space Ranger output.
 
 The data to run the tutorials is located in `docs/notebooks/tutorials/`. Note that due to Github size constraints, you have to download the counts matrices for both analyses from [Google Drive](https://drive.google.com/drive/folders/1GiibZwhpzlur8C1hNHa1g7I4jsc1Gmn7?usp=sharing). 
 
-Olfactory bulb/MERFISH tutorials coming soon!
-
 ## Software dependencies
-* torch
-* matplotlib
-* pandas
-* scikit-learn
-* numpy
-* jupyterlab
-* seaborn
-* tqdm
-* scipy
-* scanpy
-* squidpy
+* torch (=2.0.0)
+* matplotlib (=3.8.0)
+* pandas (=2.1.1)
+* scikit-learn (=1.3.1)
+* numpy (=1.23.4)
+* jupyterlab (=4.0.6)
+* seaborn (=0.12.2)
+* tqdm (=4.66.1)
+* scipy (=1.11.2)
+* scanpy (=1.9.5)
+* squidpy (=1.3.1)
 
-See full list in `environment.yml` file.
+See full list in `environment.yml` file. GASTON can be run on CPU or GPU.
 
 ## Citations
 
