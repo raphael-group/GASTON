@@ -1,3 +1,6 @@
+# pypirc
+.pypirc
+
 # cerebellum counts matrix
 docs/notebooks/tutorials/cerebellum_data/cerebellum_counts_mat.npy
 docs/notebooks/tutorials/colorectal_tumor_data/counts_mat.npy
