@@ -7,18 +7,17 @@ import os
 from gaston import segmented_fit
 from gaston.dp_related import rotate_by_theta
 
-# counts mat has to be of shape G x N
 def bin_data(counts_mat, gaston_labels, gaston_isodepth, 
               cell_type_df, gene_labels, num_bins=70, num_bins_per_domain=None,
              idx_kept=None, umi_threshold=500, pc=0, pc_exposure=True, extra_data=[]):
     
     if idx_kept is None:
-        idx_kept=np.where(np.sum(counts_mat,1) > umi_threshold)[0]
+        idx_kept=np.where(np.sum(counts_mat,0) > umi_threshold)[0]
     gene_labels_idx=gene_labels[idx_kept]
     
-    pseudo_counts_mat, exposure = segmented_fit.add_pc(counts_mat, pc=pc,pc_exposure=pc_exposure)
+    exposure=np.sum(counts_mat,axis=1)
     
-    cmat=pseudo_counts_mat[idx_kept,:]
+    cmat=counts_mat[:,idx_kept]
     
     if cell_type_df is not None:
         cell_type_mat=cell_type_df.to_numpy()
@@ -28,7 +27,7 @@ def bin_data(counts_mat, gaston_labels, gaston_isodepth,
         cell_type_mat=np.ones((N,1))
         cell_type_names=['All']
 
-    G,N=cmat.shape
+    N,G=cmat.shape
 
     # BINNING
     if num_bins_per_domain is not None:
@@ -67,22 +66,22 @@ def bin_data(counts_mat, gaston_labels, gaston_isodepth,
                                    [np.where(unique_binned_isodepths==t)[0][0] for t in unique_binned_isodepths if t not in binned_isodepths])
 
     N_1d=len(unique_binned_isodepths)
-    binned_count=np.zeros( (G, N_1d) )
+    binned_count=np.zeros( (N_1d,G) )
     binned_exposure=np.zeros( N_1d )
     to_subtract=np.zeros( N_1d )
     binned_labels=np.zeros(N_1d)
     binned_cell_type_mat=np.zeros((N_1d, len(cell_type_names)))
     binned_number_spots=np.zeros(N_1d)
 
-    binned_count_per_ct={ct: np.zeros( (G, N_1d) ) for ct in cell_type_names}
+    binned_count_per_ct={ct: np.zeros( (N_1d,G) ) for ct in cell_type_names}
     binned_exposure_per_ct={ct: np.zeros( N_1d ) for ct in cell_type_names}
     to_subtract_per_ct={ct:np.zeros( N_1d ) for ct in cell_type_names}
     binned_extra_data=[np.zeros(N_1d) for i in range(len(extra_data))]
     map_1d_bins_to_2d={} # map b -> [list of cells in bin b]
     for ind, b in enumerate(unique_binned_isodepths):
         bin_pts=np.where(binned_isodepths==b)[0]
-
-        binned_count[:,ind]=np.sum(cmat[:,bin_pts],axis=1)
+        
+        binned_count[ind,:]=np.sum(cmat[bin_pts,:],axis=0)
         binned_exposure[ind]=np.sum(exposure[bin_pts])
         if pc>0:
             to_subtract[ind]=np.log(10**6 * (len(bin_pts)/np.sum(exposure[bin_pts])))
@@ -93,7 +92,7 @@ def bin_data(counts_mat, gaston_labels, gaston_isodepth,
 
         for i, eb in enumerate(extra_data):
             binned_extra_data[i][ind]=np.mean(extra_data[i][bin_pts])
-                
+        
         for ct_ind, ct in enumerate(cell_type_names):
             
             ct_spots=np.where(cell_type_mat[:,ct_ind] > 0)[0]
@@ -101,7 +100,7 @@ def bin_data(counts_mat, gaston_labels, gaston_isodepth,
             ct_spots_bin_proportions=cell_type_mat[ct_spots_bin,ct_ind]
             
             if len(ct_spots_bin)>0:
-                binned_count_per_ct[ct][:,ind]=np.sum(cmat[:,ct_spots_bin] * np.tile(ct_spots_bin_proportions,(G,1)), axis=1)
+                binned_count_per_ct[ct][ind,:]=np.sum(cmat[ct_spots_bin,:] * np.tile(ct_spots_bin_proportions,(G,1)).T, axis=0)
                 binned_exposure_per_ct[ct][ind]=np.sum(exposure[ct_spots_bin] * ct_spots_bin_proportions)
                 if pc>0:
                     to_subtract_per_ct[ct]=np.log(10**6 * len(ct_spots_bin) / np.sum(exposure[ct_spots_bin]))
@@ -118,7 +117,7 @@ def bin_data(counts_mat, gaston_labels, gaston_isodepth,
     to_return['L']=len(np.unique(gaston_labels))
     to_return['umi_threshold']=umi_threshold
     to_return['gaston_labels']=gaston_labels
-    to_return['pseudo_counts_mat_idx']=cmat
+    to_return['counts_mat_idx']=cmat
     to_return['cell_type_mat']=cell_type_mat
     to_return['cell_type_names']=cell_type_names
     to_return['idx_kept']=idx_kept
@@ -214,7 +213,8 @@ def plot_gene_pwlinear(gene_name, pw_fit_dict, gaston_labels, gaston_isodepth, b
                     c=colors[seg]
                 
             xax=unique_binned_isodepths[pts_seg]
-            yax=np.log((binned_count[gene,pts_seg] / binned_exposure[pts_seg]) * offset + 1)
+            # print(binned_count.shape)
+            yax=np.log((binned_count[pts_seg,gene] / binned_exposure[pts_seg]) * offset + 1)
 
             if extract_values:
                 values_list.append(np.column_stack((xax, yax)))

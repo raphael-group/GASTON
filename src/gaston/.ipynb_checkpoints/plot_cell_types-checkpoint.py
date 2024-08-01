@@ -22,7 +22,7 @@ def domain_cts_svg(cell_type_df, gaston_labels, gaston_isodepth, domain_ct_thres
                   num_bins=60, num_bins_per_domain=[10,16,7,17]):
     N=len(gaston_labels)
     # need dummy counts mat and dummy gene_labels to create binning_output
-    binning_output=binning_and_plotting.bin_data(np.ones((N,10)).T, gaston_labels, gaston_isodepth, 
+    binning_output=binning_and_plotting.bin_data(np.ones((N,10)), gaston_labels, gaston_isodepth, 
                          cell_type_df, np.array(['test' for i in range(10)]), num_bins=num_bins, num_bins_per_domain=num_bins_per_domain)
     ct_dict=get_domain_cts(binning_output, domain_ct_threshold) # {0: [list of CTs], 1: [list of CTs], ...}
     ct_list=[]
@@ -86,7 +86,7 @@ def plot_ct_props(cell_type_df, gaston_labels, gaston_isodepth,
 
     N=len(gaston_labels)
     # need dummy counts mat and dummy gene_labels to create binning_output
-    binning_output=binning_and_plotting.bin_data(np.ones((N,10)).T, gaston_labels, gaston_isodepth, 
+    binning_output=binning_and_plotting.bin_data(np.ones((N,10)), gaston_labels, gaston_isodepth, 
                          cell_type_df, np.array(['test' for i in range(10)]), num_bins=num_bins, num_bins_per_domain=num_bins_per_domain)
     # print(binning_output)
     unique_binned_isodepths=binning_output['unique_binned_isodepths']

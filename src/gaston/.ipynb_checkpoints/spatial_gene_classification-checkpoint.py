@@ -57,3 +57,21 @@ def get_cont_genes(pw_fit_dict, binning_output, q=0.95, ct_attributable=False, d
                 cont_genes_domain_ct[g].append( (l, 'Other') )
                 
     return cont_genes_domain_ct
+
+######################################################
+# Get Type I, II, III gene classification from colorectal tumor analysis (see manuscript)
+######################################################
+
+def get_type_123_genes(binning_output, discont_genes, cont_genes):
+    gene_labels_idx=binning_output['gene_labels_idx']
+
+    result_dict = {f'{i:03b}': [] for i in range(8)}
+
+    for gene in gene_labels_idx:
+        A = '1' if gene in cont_genes and 0 in cont_genes[gene] else '0'
+        B = '1' if gene in discont_genes else '0'
+        C = '1' if gene in cont_genes and 1 in cont_genes[gene] else '0'
+        
+        binary_vector = A + B + C
+        result_dict[binary_vector].append(gene)
+    return result_dict
