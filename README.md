@@ -17,7 +17,11 @@ The isodepth and topographic map learned by GASTON have many downstream applicat
 </p>
 
 ## Installation
-First install conda environment from `environment.yml` file:
+GASTON is on pypi: https://pypi.org/project/gaston-spatial/.
+
+```pip install gaston-spatial```
+
+You can also directly install the conda environment from the `environment.yml` file:
 
 ```
 cd GASTON
@@ -31,7 +35,9 @@ conda activate gaston-package
 pip install -e .
 ```
 
-Installation should take <10 minutes. We will add GASTON to PyPI and Bioconda soon! 
+Installation should take <10 minutes.
+
+We will add GASTON to bioconda soon!
 
 ## Getting started
 
