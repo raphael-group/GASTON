@@ -6,6 +6,8 @@ import torch.nn.functional as F
 import torch.utils
 import torch.distributions
 
+from gaston.pos_encoding import positional_encoding
+
 import matplotlib.pyplot as plt
 
 
@@ -226,8 +228,13 @@ def find_segments_from_dp(error_mat, segment_map, l, xcoords=None):
 # OUTPUT: labels
 def get_isodepth_labels(model, A, S, num_domains, num_buckets=50, num_pcs_A=None):
     N=A.shape[0]
+        
     S_torch=torch.Tensor(S)
-    gaston_isodepth=model.spatial_embedding(torch.Tensor(S)).detach().numpy().flatten()
+
+    if model.pos_encoding:
+        S_torch = positional_encoding(S_torch, model.embed_size, model.sigma)
+
+    gaston_isodepth=model.spatial_embedding(S_torch).detach().numpy().flatten()
     
     kmax=num_domains
     
