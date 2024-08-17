@@ -5,7 +5,11 @@ Installation
 PyPI
 ----
 
-First install conda environment from `environment.yml` file::
+You can directly install GASTON via pip:
+
+```pip install gaston-spatial```
+
+Alternatively, you can directly install the conda environment from the `environment.yml` file. First install conda environment from `environment.yml` file::
 
 
     cd GASTON
