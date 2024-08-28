@@ -6,6 +6,8 @@ import torch.nn.functional as F
 import torch.utils
 import torch.distributions
 
+from gaston.pos_encoding import positional_encoding
+
 import matplotlib.pyplot as plt
 
 
@@ -189,107 +191,6 @@ def dp_bucketized(data, bucket_endpoints, Lmax, xcoords, opt_function=opt_linear
     
     return error_mat, segment_map
 
-
-def dp(data, isodepth, Lmax, use_buckets=True, num_buckets=150, opt_function=opt_linear):
-    G, N = data.shape
-    
-    if use_buckets:
-        bin_endpoints=np.linspace(np.min(isodepth),np.max(isodepth)+0.01,num_buckets+1)
-        print('running DP with buckets')
-        error_mat,seg_map=dp_bucketized(data, bin_endpoints, Lmax, 
-                                        isodepth, opt_function=opt_linear)
-
-        # get labels, save to res
-        losses,labels=get_losses_labels(error_mat,seg_map, isodepth, 
-                                            use_buckets=True, 
-                                            bin_endpoints=bin_endpoints)
-        return losses, labels
-
-    else:
-        print('running DP without buckets')
-        error_mat, seg_map = dp_raw(data, Lmax, isodepth)
-
-        # get labels, save to res
-        losses,labels=get_losses_labels(error_mat,seg_map, isodepth, use_buckets=False)
-        return losses, labels
-    
-
-
-def rotation_dp(data, coords, Lmax=8, rotation_angle_list=[0,5,10,15,17.5,20], 
-                use_buckets=True, num_buckets=150, opt_function=opt_linear):
-    """
-    Rotation mode of gaston.
-    Rotates the tissue slice by different angles and runs the above DP functions.
-    :param data: np.array of shape (G,N), either integer counts or GLM-PCs
-    :param coords: np.array of shape (N,2), i-th row is coordinate of spot i
-    :param Lmax: maximum number of domains
-    :param rotation_angle_list: list of angles (in degrees) to rotate tissue by
-    :param use_buckets: boolean indicating whether to divide x-coordinates into 
-                        equally spaced buckets or not. 
-                        (Lower spatial resolution but faster run-time)
-    :param num_buckets: (if use_buckets=True) number of buckets to divide 
-                        x-coordinate range into
-    :param opt_function: function to fit each segment (default is least squares for linear regression)
-    :return: (1) loss_array: np.array of shape (number of rotation angles, Lmax)
-            where losses[a,l] = DP loss from running segmented regression with l pieces
-            on tissue rotated by angle rotation_angle_list[a]
-            (2) label_dict: dict where [a,l] -> DP labels  from running segmented regression 
-            with l pieces on tissue rotated by angle rotation_angle_list[a]
-    """
-    G = data.shape[0]
-    N = data.shape[1]
-    
-    # loop over all angles in rotation_angle_list
-    theta_list=[deg*np.pi/180 for deg in rotation_angle_list]
-    
-    # each row is [loss at domains 1, ..., Lmax] for each rotation angle
-    losses=np.zeros( (len(rotation_angle_list), Lmax) )
-    labels={}
-    
-    for ind_t,theta in enumerate(theta_list):
-        print('\n angle: {}'.format(rotation_angle_list[ind_t]))
-        coords_rotated=rotate_by_theta(coords,theta)
-        xcoords_rotated=coords_rotated[:,0]
-        if use_buckets:
-            bin_endpoints=np.linspace(np.min(xcoords_rotated),np.max(xcoords_rotated)+0.01,num_buckets+1)
-            print('running DP with buckets')
-            error_mat,seg_map=dp_bucketized(data, bin_endpoints, Lmax, 
-                                            xcoords_rotated, opt_function=opt_linear)
-
-            # get labels, save to res
-            losses_t,labels_t=get_losses_labels(error_mat,seg_map, xcoords_rotated, 
-                                                use_buckets=True, 
-                                                bin_endpoints=bin_endpoints)
-            
-            losses[ind_t,:]=losses_t
-            for l in range(1,Lmax+1):
-                labels[(ind_t,l)]=labels_t[l]
-            
-        else:
-            print('running DP without buckets')
-            error_mat, seg_map = dp_raw(data, Lmax, xcoords_rotated)
-            
-            # get labels, save to res
-            losses_t,labels_t=get_losses_labels(error_mat,seg_map, xcoords_rotated, use_buckets=False)
-            
-            losses[ind_t,:]=losses_t
-            for l in range(1,Lmax+1):
-                labels[(ind_t,l)]=labels_t[l]
-            
-            
-#             for l in range(1,Lmax+1):
-#                 print('finding segments for {} domains'.format(l))
-#                 segs=find_segments_from_dp(error_mat, seg_map, l, xcoords=xcoords_rotated)
-#                 dp_labels=np.zeros(N)
-#                 c=0
-#                 for seg in segs:
-#                     dp_labels[seg]=c
-#                     c+=1
-                
-#                 losses[ind_t,l-1] = error_mat[-1,l-1] / N
-#                 labels[(ind_t,l)]=dp_labels
-    return losses,labels
-
 def find_segments_from_dp(error_mat, segment_map, l, xcoords=None):
     """
     Backtrack through DP output to find the l segments
@@ -327,8 +228,14 @@ def find_segments_from_dp(error_mat, segment_map, l, xcoords=None):
 # OUTPUT: labels
 def get_isodepth_labels(model, A, S, num_domains, num_buckets=50, num_pcs_A=None):
     N=A.shape[0]
+        
     S_torch=torch.Tensor(S)
-    gaston_isodepth=model.spatial_embedding(torch.Tensor(S)).detach().numpy().flatten()
+
+    if hasattr(model,'pos_encoding'):
+        if model.pos_encoding:
+            S_torch = positional_encoding(S_torch, model.embed_size, model.sigma)
+
+    gaston_isodepth=model.spatial_embedding(S_torch).detach().numpy().flatten()
     
     kmax=num_domains
     
@@ -348,27 +255,3 @@ def get_isodepth_labels(model, A, S, num_domains, num_buckets=50, num_pcs_A=None
         c+=1
     
     return gaston_isodepth,gaston_labels
-
-def filter_rescale_boundary(counts_mat, coords_mat, gaston_isodepth, gaston_labels, isodepth_min=0, isodepth_max=1):
-    locs=np.array( [i for i in range(len(gaston_isodepth)) if isodepth_min < gaston_isodepth[i] < isodepth_max] )
-    
-    counts_mat_subset=counts_mat[locs,:]
-    print(f'restricting to {coords_mat.shape} spots')
-    coords_mat_subset=coords_mat[locs,:]
-    gaston_labels_subset=gaston_labels[locs]
-    gaston_labels_subset -= np.min( np.unique( gaston_labels[locs] ) )
-    gaston_isodepth_subset=gaston_isodepth[locs]
-    
-    ####
-    
-    gaston_isodepth_subset0=gaston_isodepth_subset[gaston_labels_subset==0]
-    gaston_isodepth_subset1=gaston_isodepth_subset[gaston_labels_subset==1]
-
-    isodepth_ratio=np.std( gaston_isodepth_subset1 ) / np.std( gaston_isodepth_subset0 )
-
-    gaston_isodepth_subset0_new=((gaston_isodepth_subset0 - np.max(gaston_isodepth_subset0)) * isodepth_ratio) + np.max(gaston_isodepth_subset0)
-
-    gaston_isodepth_subset[gaston_labels_subset==0] = gaston_isodepth_subset0_new
-    
-    return counts_mat_subset, coords_mat_subset, gaston_isodepth_subset, gaston_labels_subset
-    

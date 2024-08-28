@@ -146,11 +146,22 @@ def train(S, A,
     momentum
         momentum parameter, if using SGD optimizer
     """
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(f'device: {device}')
+    
     set_seeds(seed)
     N,G=A.shape
+
+    # Move S and A to the device
+    S = S.to(device)
+    A = A.to(device)
     
     if gaston_model == None:
         gaston_model=GASTON(A.shape[1], S_hidden_list, A_hidden_list, activation_fn=activation_fn, pos_encoding=pos_encoding, embed_size=embed_size, sigma=sigma)
+
+    # Move the model to the device
+    gaston_model = gaston_model.to(device)
     
     if optim=='sgd':
         opt = torch.optim.SGD(gaston_model.parameters(), lr=lr, momentum=momentum, weight_decay=weight_decay)
@@ -174,7 +185,7 @@ def train(S, A,
         
         if batch_size is not None:
             # take non-overlapping random samples of size batch_size
-            permutation = torch.randperm(N)
+            permutation = torch.randperm(N).to(device)
             for i in range(0, N, batch_size):
                 opt.zero_grad()
                 indices = permutation[i:i+batch_size]
@@ -225,7 +236,9 @@ def set_seeds(seed):
     torch.backends.cudnn.deterministic = True
 
 def get_loss(mod, St, At):
-    N,G=At.shape
+    if hasattr(mod, 'pos_encoding'):
+        if mod.pos_encoding:
+            St=positional_encoding(St, mod.embed_size, mod.sigma)
     errr=(mod(St) - At)**2
     return torch.mean(errr)
 

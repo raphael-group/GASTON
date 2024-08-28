@@ -13,6 +13,8 @@ import torch.utils
 import torch.distributions
 from gaston.dp_related import rotate_by_theta
 
+from gaston.pos_encoding import positional_encoding
+
 def plot_clusters(gaston_labels, S, fig=None, ax=None, figsize=(5,8), colors=None, color_palette=plt.cm.Dark2, s=20,labels=None,
                  lgd=False, rotate=None, show_boundary=False, gaston_isodepth=None, boundary_lw=10,bbox_to_anchor=None,
                  linear_transform=None):
@@ -100,10 +102,14 @@ def plot_isodepth(gaston_isodepth, S, mod, figsize=(5,8), contours=True, contour
         cbar.ax.tick_params(labelsize=cbar_fs)
     if streamlines:
         x=torch.tensor(S,requires_grad=True).float()
+        if hasattr(mod, 'pos_encoding'):
+            x=positional_encoding(x, mod.embed_size, mod.sigma)
         G=torch.autograd.grad(outputs=mod.spatial_embedding(x).flatten(),inputs=x, grad_outputs=torch.ones_like(x[:,0]))[0]
         G=G.detach().numpy()
         if neg_gradient:
             G=-1*G
+        if hasattr(mod, 'pos_encoding'):
+            G=G[:,:2]
 
         if scaling_factors is not None:
             L=len(np.unique(gaston_labels_for_scaling))

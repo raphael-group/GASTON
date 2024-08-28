@@ -7,7 +7,7 @@ from subprocess import Popen,PIPE
 def train_NN_parallel(path_to_coords, path_to_glmpca, hidden_spatial, hidden_expression, 
                       output_dir, conda_environment, path_to_conda_folder,
                       epochs=10000, checkpoint=500, optimizer='adam', num_seeds=30, partition=None,
-                     time="0-01:00:00"):
+                      pos_encoding=True, time="0-01:00:00"):
 
     hidden_spatial=' '.join(map(str, hidden_spatial))
     hidden_expression=' '.join(map(str, hidden_expression))
@@ -21,6 +21,8 @@ def train_NN_parallel(path_to_coords, path_to_glmpca, hidden_spatial, hidden_exp
         cmd += f"--epochs {epochs} -d {output_dir} "
         cmd += f"--hidden_spatial {hidden_spatial} --hidden_expression {hidden_expression} "
         cmd += f"--optimizer {optimizer} --seed {seed} -c {checkpoint}"
+        if pos_encoding:
+            cmd += f" --positional_encoding"
         create_job_script(seed, f"{output_dir}/seed{seed}", tasks, processes, time, mem_per_cpu, cmd, conda_environment,path_to_conda_folder, partition=partition)
 
 def create_job_script(name, outDir, tasks, cpuPerTask, time, mem_per_cpu, command, environment, path_to_conda_folder, partition=None):

@@ -15,6 +15,7 @@ from sklearn import preprocessing
 # from prettytable import PrettyTable
 
 # from gaston.parse_args import args
+
 import argparse
 from gaston.neural_net import load_rescale_input_data,train
 from gaston import dp_related
@@ -40,6 +41,10 @@ def main():
     # parser.add_argument('--hidden_layers_expression', type=int, required=False, default=1, help="number of hidden layers encoding depth to expression")
     parser.add_argument('-x', '--hidden_expression', nargs='+', type=int, required=True, help="architecture of fully connected NN transforming isodepth to expression GLM-PCs")
 
+    parser.add_argument('-t', '--positional_encoding', action='store_true', help="positional encoding option")
+    parser.add_argument('-b', '--embedding_size', type=int, required=False, default=4, help="positional encoding embedding size")
+    parser.add_argument('-g', '--sigma', type=float, required=False, default=0.2, help="positional encoding sigma hyperparameter")
+
     parser.add_argument('-z', '--optimizer', type=str, required=False, default="adam", help="optimizer for fitting the neural network")
     parser.add_argument('-s', '--seed', type=int, required=False, default=0, help="Set random seed for reproducibility")
 
@@ -57,31 +62,9 @@ def main():
     mod, loss_list = train(S_torch, A_torch,
                           S_hidden_list=args.hidden_spatial, A_hidden_list=args.hidden_expression, 
                           epochs=args.epochs, checkpoint=args.checkpoint, 
-                          save_dir=out_dir_seed, optim=args.optimizer, seed=args.seed, save_final=True) 
+                          save_dir=out_dir_seed, optim=args.optimizer, seed=args.seed, save_final=True, 
+                          pos_encoding=args.positional_encoding, sigma=args.sigma) 
 
-def get_parser():
-    description = "GASTON"
-    parser = argparse.ArgumentParser(description=description)
-
-    parser.add_argument('-o', '--output_layer', type=str, required=True, help="filename for N x G numpy array of GLM-PC values (column) for each spatial coordinate (row)")
-    parser.add_argument('-i', '--input_layer', type=str, required=True, help="filename for N x 2 numpy array of position (x,y) of each spatial location in sample")
-    parser.add_argument('-d', '--output_dir', type=str, required=False, default="./", help="The directory to save the output files")
-    
-    parser.add_argument('-e', '--epochs', type=int, required=False, default=10000, help="number of epochs to train the neural network")
-    parser.add_argument('-c', '--checkpoint', type=int, required=False, default=500, help="save model every checkpoint epochs")
-
-    # parser.add_argument('-u', '--hidden_units_spatial', type=int, required=False, default=50, help="number of hidden units encoding spatial coordinates to depth")
-    # parser.add_argument('--hidden_layers_spatial', type=int, required=False, default=1, help="number of hidden layers encoding spatial coordinates to depth")
-    parser.add_argument('-p', '--hidden_spatial', nargs='+', type=int, required=True, help="architecture of fully connected NN transforming spatial coordinates (x,y) to isodepth")
-
-    # parser.add_argument('-x', '--hidden_units_expression', type=int, required=False, default=10, help="number of hidden units encoding depth to expression")
-    # parser.add_argument('--hidden_layers_expression', type=int, required=False, default=1, help="number of hidden layers encoding depth to expression")
-    parser.add_argument('-x', '--hidden_expression', nargs='+', type=int, required=True, help="architecture of fully connected NN transforming isodepth to expression GLM-PCs")
-
-    parser.add_argument('-z', '--optimizer', type=str, required=False, default="adam", help="optimizer for fitting the neural network")
-    parser.add_argument('-s', '--seed', type=int, required=False, default=0, help="Set random seed for reproducibility")
-
-    return parser
 
 
 if __name__ == '__main__':

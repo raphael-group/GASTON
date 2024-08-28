@@ -7,6 +7,7 @@ import numpy as np
 import random
 import os
 from sklearn import preprocessing
+from gaston.pos_encoding import positional_encoding
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 ##################################################################################
@@ -39,6 +40,12 @@ class GASTON(nn.Module):
         (e.g. [10,10] means f_A has two hidden layers, both of size 10)
     activation_fn
         activation function for neural network
+    pos_encoding
+        positional encoding option
+    embed_size
+        positional encoding embedding size
+    sigma
+        positional encoding sigma hyperparameter
     """
     
     def __init__(
@@ -47,11 +54,20 @@ class GASTON(nn.Module):
         S_hidden_list, 
         A_hidden_list,
         activation_fn=nn.ReLU(),
+        pos_encoding=False,
+        embed_size=4,
+        sigma=0.1,
     ):
         super(GASTON, self).__init__()
+
+        self.pos_encoding = pos_encoding
+        self.embed_size = embed_size
+        self.sigma = sigma
+
+        input_size = 2*embed_size if self.pos_encoding else 2
         
         # create spatial embedding f_S
-        S_layer_list=[2] + S_hidden_list + [1]
+        S_layer_list=[input_size] + S_hidden_list + [1]
         S_layers=[]
         for l in range(len(S_layer_list)-1):
             # add linear layer
@@ -98,7 +114,8 @@ def train(S, A,
           gaston_model=None, S_hidden_list=None, A_hidden_list=None, activation_fn=nn.ReLU(),
           epochs=1000, batch_size=None, 
           checkpoint=100, save_dir=None, loss_reduction='mean',
-          optim='sgd', lr=1e-3, weight_decay=0, momentum=0, seed=0, save_final=False):
+          optim='sgd', lr=1e-3, weight_decay=0, momentum=0, seed=0, save_final=False,
+          pos_encoding=False, embed_size=4, sigma=0.1):
     """
     Train GASTON model from scratch
     
@@ -129,11 +146,22 @@ def train(S, A,
     momentum
         momentum parameter, if using SGD optimizer
     """
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(f'device: {device}')
+    
     set_seeds(seed)
     N,G=A.shape
+
+    # Move S and A to the device
+    S = S.to(device)
+    A = A.to(device)
     
     if gaston_model == None:
-        gaston_model=GASTON(A.shape[1], S_hidden_list, A_hidden_list, activation_fn=activation_fn)
+        gaston_model=GASTON(A.shape[1], S_hidden_list, A_hidden_list, activation_fn=activation_fn, pos_encoding=pos_encoding, embed_size=embed_size, sigma=sigma)
+
+    # Move the model to the device
+    gaston_model = gaston_model.to(device)
     
     if optim=='sgd':
         opt = torch.optim.SGD(gaston_model.parameters(), lr=lr, momentum=momentum, weight_decay=weight_decay)
@@ -142,6 +170,10 @@ def train(S, A,
     elif optim=='adagrad':
         opt = torch.optim.Adagrad(gaston_model.parameters(), weight_decay=weight_decay)    
     loss_list=np.zeros(epochs)
+
+    S_init = torch.clone(S)
+    if gaston_model.pos_encoding:
+        S = positional_encoding(S, gaston_model.embed_size, gaston_model.sigma)
 
     loss_function=torch.nn.MSELoss(reduction=loss_reduction)
     
@@ -153,7 +185,7 @@ def train(S, A,
         
         if batch_size is not None:
             # take non-overlapping random samples of size batch_size
-            permutation = torch.randperm(N)
+            permutation = torch.randperm(N).to(device)
             for i in range(0, N, batch_size):
                 opt.zero_grad()
                 indices = permutation[i:i+batch_size]
@@ -183,8 +215,11 @@ def train(S, A,
         np.savetxt(f'{save_dir}/loss_list.txt', loss_list)
         with open(f'{save_dir}/min_loss.txt', 'w') as f:
             f.write(str(min(loss_list)) + "\n")
-        torch.save(S, f'{save_dir}/Storch.pt')
         torch.save(A, f'{save_dir}/Atorch.pt')
+        if gaston_model.pos_encoding:
+            torch.save(S_init, f'{save_dir}/Storch.pt')
+        else:
+            torch.save(S, f'{save_dir}/Storch.pt')
     
     return gaston_model, loss_list
     
@@ -201,7 +236,9 @@ def set_seeds(seed):
     torch.backends.cudnn.deterministic = True
 
 def get_loss(mod, St, At):
-    N,G=At.shape
+    if hasattr(mod, 'pos_encoding'):
+        if mod.pos_encoding:
+            St=positional_encoding(St, mod.embed_size, mod.sigma)
     errr=(mod(St) - At)**2
     return torch.mean(errr)
 
