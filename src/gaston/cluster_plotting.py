@@ -103,13 +103,13 @@ def plot_isodepth(gaston_isodepth, S, mod, figsize=(5,8), contours=True, contour
     if streamlines:
         x=torch.tensor(S,requires_grad=True).float()
         if hasattr(mod, 'pos_encoding'):
-            x=positional_encoding(x, mod.embed_size, mod.sigma)
-        G=torch.autograd.grad(outputs=mod.spatial_embedding(x).flatten(),inputs=x, grad_outputs=torch.ones_like(x[:,0]))[0]
+            encoded_x=positional_encoding(x, mod.embed_size, mod.sigma)
+            G=torch.autograd.grad(outputs=mod.spatial_embedding(encoded_x).flatten(),inputs=x, grad_outputs=torch.ones_like(x[:,0]))[0]
+        else:
+            G=torch.autograd.grad(outputs=mod.spatial_embedding(x).flatten(),inputs=x, grad_outputs=torch.ones_like(x[:,0]))[0]
         G=G.detach().numpy()
         if neg_gradient:
             G=-1*G
-        if hasattr(mod, 'pos_encoding'):
-            G=G[:,:2]
 
         if scaling_factors is not None:
             L=len(np.unique(gaston_labels_for_scaling))
