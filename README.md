@@ -70,20 +70,23 @@ See full list in `environment.yml` file. GASTON can be run on CPU or GPU.
 
 ## Citations
 
-The GASTON manuscript is available on [bioRxiv](https://www.biorxiv.org/content/10.1101/2023.10.10.561757v1). If you use GASTON for your work, please cite our paper.
+The GASTON manuscript is published at [Nature Methods](https://www.nature.com/articles/s41592-024-02503-3). If you use GASTON for your work, please cite our paper.
 
 ```
-@article {Chitra2023,
-	author = {Uthsav Chitra and Brian J. Arnold and Hirak Sarkar and Cong Ma and Sereno Lopez-Darwin and Kohei Sanno and Benjamin J. Raphael},
+
+@article{Chitra2025,
+	date = {2025/01/23},
+	date-added = {2025-01-27 12:52:11 -0500},
+	date-modified = {2025-01-27 12:52:11 -0500},
+	doi = {10.1038/s41592-024-02503-3},
+	id = {Chitra2025},
+	isbn = {1548-7105},
+	journal = {Nature Methods},
 	title = {Mapping the topography of spatial gene expression with interpretable deep learning},
-	elocation-id = {2023.10.10.561757},
-	year = {2023},
-	doi = {10.1101/2023.10.10.561757},
-	publisher = {Cold Spring Harbor Laboratory},
-	URL = {https://www.biorxiv.org/content/early/2023/10/13/2023.10.10.561757},
-	eprint = {https://www.biorxiv.org/content/early/2023/10/13/2023.10.10.561757.full.pdf},
-	journal = {bioRxiv}
-}
+	url = {https://doi.org/10.1038/s41592-024-02503-3},
+	year = {2025},
+	bdsk-url-1 = {https://doi.org/10.1038/s41592-024-02503-3}}
+
 ```
 
 ## Support
