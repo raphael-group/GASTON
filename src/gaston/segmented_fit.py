@@ -182,11 +182,11 @@ def segmented_poisson_regression(count, totalumi, dp_labels, isodepth, num_domai
             if len(pts_t) > 10:
                 s0, i0, s1, i1, pval = llr_poisson(count[g,pts_t], xcoords=isodepth[pts_t], exposure=totalumi[pts_t], alpha=reg)
             else:
-                s0=np.Inf
-                i0=np.Inf
-                s1=np.Inf
-                i1=np.Inf
-                pval=np.Inf
+                s0=np.inf
+                i0=np.inf
+                s1=np.inf
+                i1=np.inf
+                pval=np.inf
         
             slope0_matrix[g,t]=s0
             intercept0_matrix[g,t]=i0

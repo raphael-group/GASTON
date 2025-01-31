@@ -51,7 +51,7 @@ from gaston.neural_net import get_loss
 #     return best_mod, A, S
 
 def process_files(output_folder, output_torch=False, epoch_number='final', seed_list=None):
-    smallest_loss = np.Inf
+    smallest_loss = np.inf
     best_model_folder_path = None
     best_mod=None
 
@@ -79,7 +79,7 @@ def process_files(output_folder, output_torch=False, epoch_number='final', seed_
                 model_path=final_model_path
             else:
                 # find highest epoch model and load
-                highest_epoch=-np.Inf
+                highest_epoch=-np.inf
                 for filename in os.listdir(folder_path):
                     if "model_epoch_" in filename:
                         # Extract the epoch number from the filename

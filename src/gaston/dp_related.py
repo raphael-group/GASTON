@@ -28,12 +28,6 @@ def rotate_by_theta(coords, theta, rotate_about=np.array([0,0])):
     
 
 def opt_linear(y, xcoords):
-    """
-    Fit each row y_g of Y as y_g = xcoords * theta + const using linear regression
-    :param y: np.array of shape (G,N)
-    :param xcoords: np.array of shape (N,) of x-coordinates.
-    :return: (1) theta, const for each gene g and (2) Total loss \sum_g ||y_g - yhat_g||^2 
-    """
     g,n = y.shape
     if n==1:
         return np.array([]),0
@@ -50,7 +44,7 @@ def opt_linear(y, xcoords):
         return theta.T,error
     except: # in case no linreg fit
         placeholder=np.ones((2,g))-2
-        return placeholder, np.Inf
+        return placeholder, np.inf
     
 def dp_raw(data, Lmax, xcoords, opt_function=opt_linear):
     """
@@ -97,7 +91,7 @@ def dp_raw(data, Lmax, xcoords, opt_function=opt_linear):
         # for each column, go from top to bottom [ignoring first row]
         for n in range(N):
             best_nprime=-1
-            best_error=np.Inf
+            best_error=np.inf
 
             for nprime in range(n):
                 if saved_opt_functions[nprime+1,n+1] >= 0:
@@ -169,7 +163,7 @@ def dp_bucketized(data, bucket_endpoints, Lmax, xcoords, opt_function=opt_linear
             # fill out entry t,p
 
             best_bprime=-1
-            best_error=np.Inf
+            best_error=np.inf
             for bprime in range(b):
                 
                 if saved_opt_functions[bprime+1,b+1] >= 0:

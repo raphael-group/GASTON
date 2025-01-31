@@ -109,8 +109,18 @@ class GASTON(nn.Module):
 #                  (e.g. [10,10] means f_A has two hidden layers, both of size 10)
 #   activation_fn: activation function
 ##################################################################################
-    
+   
+class ScaleAndSigmoid(nn.Module):
+    def __init__(self):
+        super(ScaleAndSigmoid, self).__init__()
+        self.sigmoid = nn.Sigmoid()
+
+    def forward(self, x):
+        x = 0.02 * x  # Multiply input by 2
+        return self.sigmoid(x)  # Apply Sigmoid to 2x
+
 def train(S, A, 
+          #gaston_model=None, S_hidden_list=None, A_hidden_list=None, activation_fn=ScaleAndSigmoid(),
           gaston_model=None, S_hidden_list=None, A_hidden_list=None, activation_fn=nn.ReLU(),
           epochs=1000, batch_size=None, 
           checkpoint=100, save_dir=None, loss_reduction='mean',
@@ -148,7 +158,6 @@ def train(S, A,
     """
     set_seeds(seed)
     N,G=A.shape
-    
     if gaston_model == None:
         gaston_model=GASTON(A.shape[1], S_hidden_list, A_hidden_list, activation_fn=activation_fn, pos_encoding=pos_encoding, embed_size=embed_size, sigma=sigma)
     

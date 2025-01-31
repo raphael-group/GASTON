@@ -129,7 +129,6 @@ def plot_ct_props(cell_type_df, gaston_labels, gaston_isodepth,
 
     ct_count_mat=(ct_count_mat+pc_mat)[ct_inds]
     ct_count_prop=normalize(ct_count_mat,axis=0,norm='l1')
-    print(ct_count_prop.shape, ct_list)
 
     fig,ax=plt.subplots(figsize=figsize)
         
@@ -141,9 +140,10 @@ def plot_ct_props(cell_type_df, gaston_labels, gaston_isodepth,
     for i,ct in enumerate(ct_list):
         widths=np.ones(len(unique_binned_isodepths))*width2
         for l in range(L):
-            if ct in domain_ct_markers[l]:
-                pts_l=np.where(binned_labels==l)[0]
-                widths[pts_l]=width1
+            if ct_list is None:
+                if ct in domain_ct_markers[l]:
+                    pts_l=np.where(binned_labels==l)[0]
+                    widths[pts_l]=width1
         for s in range(len(widths)-1):
             if widths[s]==width1 and widths[s+1] < width1:
                 widths[s]=width2
@@ -160,7 +160,6 @@ def plot_ct_props(cell_type_df, gaston_labels, gaston_isodepth,
         
     # AXES tick size
     ax.tick_params(axis='both', which='major', labelsize=ticksize)
-
     for i in range(L-1):
         if i==0:
             plt.axvline((left_bps[i]+right_bps[i])*0.5, color='black', ls='--', linewidth=3, label=domain_boundary_label)
@@ -169,14 +168,17 @@ def plot_ct_props(cell_type_df, gaston_labels, gaston_isodepth,
 
     if include_lgd:
         lgd=plt.legend(fontsize=lgd_fontsize, bbox_to_anchor=lgd_bbox, labelcolor='linecolor', frameon=lgd_frameon)
-    
-        for lh in lgd.legendHandles: 
-            lh.set_alpha(1)
+        try:
+            for lh in lgd.legendHandles: 
+                lh.set_alpha(1)
+                lh.set_linewidth(lgd_width)
+        except:
+            for lh in lgd.legend_handles:
+                lh.set_alpha(1)
+                lh.set_linewidth(lgd_width)
         for text in lgd.get_texts():
             text.set_alpha(1)
             text.set_size(lgd_fontsize)
-        for legobj in lgd.legendHandles:
-            legobj.set_linewidth(lgd_width)
     
     
     plt.ylim((0, 1.05))

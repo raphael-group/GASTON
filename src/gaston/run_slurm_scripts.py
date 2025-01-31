@@ -47,6 +47,7 @@ def create_job_script(name, outDir, tasks, cpuPerTask, time, mem_per_cpu, comman
 
 #Submit filename to slurm with sbatch, returns job id number
 def sbatch_submit(filename, partition):
+    print(f'partition: {partition}')
     if partition is not None:
         proc=Popen(f'sbatch -A {partition} {filename}',shell=True,stdout=PIPE,stderr=PIPE)
     else:
