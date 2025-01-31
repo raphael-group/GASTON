@@ -140,10 +140,9 @@ def plot_ct_props(cell_type_df, gaston_labels, gaston_isodepth,
     for i,ct in enumerate(ct_list):
         widths=np.ones(len(unique_binned_isodepths))*width2
         for l in range(L):
-            if ct_list is None:
-                if ct in domain_ct_markers[l]:
-                    pts_l=np.where(binned_labels==l)[0]
-                    widths[pts_l]=width1
+            if ct in domain_ct_markers[l]:
+                pts_l=np.where(binned_labels==l)[0]
+                widths[pts_l]=width1
         for s in range(len(widths)-1):
             if widths[s]==width1 and widths[s+1] < width1:
                 widths[s]=width2
