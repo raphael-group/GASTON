@@ -4,8 +4,8 @@ from gaston import dp_related
 import torch
 import matplotlib.pyplot as plt
 
-def plot_ll_curve(gaston_model, A, S, max_domain_num=8, start_from=2):
-    ll_list=get_ll_list(gaston_model, A, S, num_buckets=150, kmax=max_domain_num)
+def plot_ll_curve(gaston_model, A, S, max_domain_num=8, start_from=2,num_buckets=150):
+    ll_list=get_ll_list(gaston_model, A, S, num_buckets=num_buckets, kmax=max_domain_num)
     
     kneedle=KneeLocator(np.arange(start_from,len(ll_list)+1), ll_list[start_from-1:], curve="convex", direction="decreasing")
     kneedle_opt=kneedle.knee
@@ -28,7 +28,6 @@ def get_ll_list(model, A, S, num_buckets=150, kmax=10):
     N=A.shape[0]
     S_torch=torch.Tensor(S)
     belayer_depth=model.spatial_embedding(torch.Tensor(S)).detach().numpy().flatten()
-    
     bin_endpoints=np.linspace(np.min(belayer_depth),np.max(belayer_depth)+0.01,num_buckets+1)
     error_mat,seg_map=dp_related.dp_bucketized(A.T, bin_endpoints, kmax, xcoords=belayer_depth)
     return error_mat[-1,:]

@@ -3,14 +3,34 @@ import scanpy as sc
 import squidpy as sq
 import pandas as pd    
 
+def use_RGB(adata):
+    library_id = list(adata.uns['spatial'].keys())[0] # adata2.uns['spatial'] should have only one key
+    scale=adata.uns['spatial'][library_id]['scalefactors']['tissue_hires_scalef']
+    img = sq.im.ImageContainer(adata.uns['spatial'][library_id]['images']['hires'],
+                               scale=scale,
+                               layer="img1")
+    print('calculating RGB')
+    sq.im.calculate_image_features(adata, img, features="summary", key_added="features")
+    columns = ['summary_ch-0_mean', 'summary_ch-1_mean', 'summary_ch-2_mean']
+    RGB_mean = adata.obsm["features"][columns]
+    RGB_mean = RGB_mean / 255
+    
+    # RGB_mean = RGB_mean[RGB_mean.index.isin(df_pos['barcode'])]
+
+    return RGB_mean.to_numpy()
+    
 
 def get_gaston_input_adata(data_folder, get_rgb=False, spot_umi_threshold=50):
     adata=sq.read.visium(data_folder)
     sc.pp.filter_cells(adata, min_counts=spot_umi_threshold)
 
     gene_labels=adata.var.index.to_numpy()
-    counts_mat=adata.X
+    counts_mat=np.array(adata.X.todense())
     coords_mat=np.array(adata.X.todense())
+
+    # make sure counts_mat is NxG and coords_mat is Nx2
+    if counts_mat.shape[0] != coords_mat.shape[0]:
+        counts_mat=counts_mat.T
 
     if not get_rgb:
         return counts_mat, coords_mat, gene_labels

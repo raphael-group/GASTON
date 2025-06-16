@@ -41,7 +41,7 @@ def main():
     # parser.add_argument('--hidden_layers_expression', type=int, required=False, default=1, help="number of hidden layers encoding depth to expression")
     parser.add_argument('-x', '--hidden_expression', nargs='+', type=int, required=True, help="architecture of fully connected NN transforming isodepth to expression GLM-PCs")
 
-    parser.add_argument('-t', '--positional_encoding', action='store_true', help="positional encoding option")
+    # parser.add_argument('-t', '--positional_encoding', action='store_true', help="positional encoding option")
     parser.add_argument('-b', '--embedding_size', type=int, required=False, default=4, help="positional encoding embedding size")
     parser.add_argument('-g', '--sigma', type=float, required=False, default=0.2, help="positional encoding sigma hyperparameter")
 
@@ -63,7 +63,7 @@ def main():
                           S_hidden_list=args.hidden_spatial, A_hidden_list=args.hidden_expression, 
                           epochs=args.epochs, checkpoint=args.checkpoint, 
                           save_dir=out_dir_seed, optim=args.optimizer, seed=args.seed, save_final=True, 
-                          pos_encoding=args.positional_encoding, sigma=args.sigma) 
+                          sigma=args.sigma) 
 
 
 

@@ -6,7 +6,7 @@ import torch.nn.functional as F
 import torch.utils
 import torch.distributions
 
-from gaston.pos_encoding import positional_encoding
+# from gaston.pos_encoding import positional_encoding
 
 import matplotlib.pyplot as plt
 
@@ -225,8 +225,8 @@ def get_isodepth_labels(model, A, S, num_domains, num_buckets=50, num_pcs_A=None
         
     S_torch=torch.Tensor(S)
 
-    if model.pos_encoding:
-        S_torch = positional_encoding(S_torch, model.embed_size, model.sigma)
+    # if model.pos_encoding:
+    #     S_torch = positional_encoding(S_torch, model.embed_size, model.sigma)
 
     gaston_isodepth=model.spatial_embedding(S_torch).detach().numpy().flatten()
     
