@@ -8,7 +8,6 @@ import random
 import os
 from sklearn import preprocessing
 # from gaston.pos_encoding import positional_encoding
-device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 ##################################################################################
 # Neural network class
@@ -111,7 +110,7 @@ def train(S, A,
           epochs=1000, batch_size=None, 
           checkpoint=100, save_dir=None, loss_reduction='mean',
           optim='sgd', lr=1e-3, weight_decay=0, momentum=0, seed=0, save_final=False,
-          embed_size=4, sigma=0.1):
+          embed_size=4, sigma=0.1,device=None):
     """
     Train GASTON model from scratch
     
@@ -143,9 +142,19 @@ def train(S, A,
         momentum parameter, if using SGD optimizer
     """
     set_seeds(seed)
+    if device is None:
+        device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    print(f'Training on device: {device}')
     N,G=A.shape
     if gaston_model == None:
         gaston_model=GASTON(A.shape[1], S_hidden_list, A_hidden_list, activation_fn=activation_fn, embed_size=embed_size, sigma=sigma)
+    
+    # Move model to device
+    gaston_model = gaston_model.to(device)
+    
+    # Move data to device
+    S = S.to(device)
+    A = A.to(device)
     
     if optim=='sgd':
         opt = torch.optim.SGD(gaston_model.parameters(), lr=lr, momentum=momentum, weight_decay=weight_decay)
@@ -161,13 +170,13 @@ def train(S, A,
     
     for epoch in range(epochs):
         if epoch%checkpoint==0:
-            #print(f'epoch: {epoch}')
+            print(f'epoch: {epoch}')
             if save_dir is not None:
                 torch.save(gaston_model, f'{save_dir}/model_epoch_{epoch}.pt')
         
         if batch_size is not None:
             # take non-overlapping random samples of size batch_size
-            permutation = torch.randperm(N)
+            permutation = torch.randperm(N, device=device)
             for i in range(0, N, batch_size):
                 opt.zero_grad()
                 indices = permutation[i:i+batch_size]

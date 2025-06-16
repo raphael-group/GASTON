@@ -67,6 +67,10 @@ def process_files(output_folder, output_torch=False, epoch_number='final', seed_
         if os.path.isdir(folder_path) and 'Storch.pt' in os.listdir(folder_path) and 'Atorch.pt' in os.listdir(folder_path):
             St=torch.load(os.path.join(folder_path, 'Storch.pt'))
             At=torch.load(os.path.join(folder_path, 'Atorch.pt'))
+            
+            # Ensure data is on CPU for loss calculation
+            St = St.cpu()
+            At = At.cpu()
 
             # check if final_model exists
             if epoch_number!='final':
@@ -91,6 +95,8 @@ def process_files(output_folder, output_torch=False, epoch_number='final', seed_
                 model_path=os.path.join(folder_path, highest_epoch_file)
         
             mod =  torch.load(model_path)
+            # Ensure model is on CPU
+            mod = mod.cpu()
             loss = get_loss(mod,St,At)
             # print(f'model: {model_path}, loss:{loss}')
 
@@ -109,9 +115,13 @@ def process_files(output_folder, output_torch=False, epoch_number='final', seed_
         if os.path.exists(storch_path) and os.path.exists(atorch_path):
             A_torch = torch.load(atorch_path)
             S_torch = torch.load(storch_path)
+            
+            # Ensure data is on CPU
+            A_torch = A_torch.cpu()
+            S_torch = S_torch.cpu()
 
-            A = A_torch.detach().numpy()
-            S = S_torch.detach().numpy()
+            A = A_torch.cpu().detach().numpy()
+            S = S_torch.cpu().detach().numpy()
 
     else:
         raise Exception("No model found in any folder.")

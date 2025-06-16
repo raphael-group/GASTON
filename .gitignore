@@ -6,6 +6,8 @@ docs/notebooks/tutorials/cerebellum_data/cerebellum_counts_mat.npy
 docs/notebooks/tutorials/colorectal_tumor_data/counts_mat.npy
 docs/notebooks/tutorials/colorectal_tumor_data/filtered_feature_bc_matrix.h5
 docs/notebooks/tutorials/testing.ipynb
+docs/notebooks/tutorials/colorectal_tumor_tutorial_outputs_testing/*
+docs/notebooks/tutorials/cerebellum_tutorial_outputs_testing/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
