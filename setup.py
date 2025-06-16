@@ -4,7 +4,7 @@ import setuptools
 
 setuptools.setup(
     name='gaston',
-    version='v0.0.1',
+    version='v0.1.1',
     python_requires='>=3.8',
     packages=['gaston'],
     package_dir={'': 'src'},
