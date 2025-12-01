@@ -180,6 +180,16 @@ def dp_bucketized(data, bucket_endpoints, Lmax, xcoords, opt_function=opt_linear
                 if cur_error < best_error:
                     best_error=cur_error
                     best_bprime=bprime
+            
+            # Fix: Handle edge case when no valid bprime found (b=0)
+            if best_bprime == -1:
+                # For b=0, we can only use a single segment from start to b
+                best_bprime = 0 if b == 0 else -1
+                if b == 0:
+                    inds_upto_b = np.where(buckets <= b)[0]
+                    xc = xcoords[inds_upto_b]
+                    _, best_error = opt_function(data[:,inds_upto_b], xc)
+            
             error_mat[b,p] = best_error
             segment_map[(b,p)] = (best_bprime,p-1)
     
@@ -207,10 +217,21 @@ def find_segments_from_dp(error_mat, segment_map, l, xcoords=None):
     sorted_xcoords_inds=np.argsort(xcoords)
 
     while seg_val > 0:
-        new_time_val,new_seg_val=segment_map[(time_val,seg_val)]
-        segs[seg_val]=sorted_xcoords_inds[new_time_val+1:time_val+1]
-        time_val=new_time_val
-        seg_val=new_seg_val
+        key = (time_val, seg_val)
+        if key not in segment_map:
+            # Handle missing key by breaking the loop
+            print(f"Warning: segment_map missing key {key}, breaking early")
+            break
+        new_time_val, new_seg_val = segment_map[key]
+        
+        # Handle invalid values
+        if new_time_val < 0 or new_seg_val < 0:
+            print(f"Warning: invalid segment values ({new_time_val}, {new_seg_val}), breaking early")
+            break
+            
+        segs[seg_val] = sorted_xcoords_inds[new_time_val+1:time_val+1]
+        time_val = new_time_val
+        seg_val = new_seg_val
     segs[0]=np.arange(0,time_val+1)
     return segs
 

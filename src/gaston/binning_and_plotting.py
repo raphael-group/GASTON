@@ -12,10 +12,10 @@ def bin_data(counts_mat, gaston_labels, gaston_isodepth,
              idx_kept=None, umi_threshold=500, pc=0, pc_exposure=True, extra_data=[]):
     
     if idx_kept is None:
-        idx_kept=np.where(np.sum(counts_mat,0) > umi_threshold)[0]
+        idx_kept=np.where(np.sum(counts_mat,1) > umi_threshold)[0]
     gene_labels_idx=gene_labels[idx_kept]
     
-    exposure=np.sum(counts_mat,axis=1)
+    exposure=np.sum(counts_mat,axis=0)
     
     cmat=counts_mat[:,idx_kept]
     
